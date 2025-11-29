@@ -42,7 +42,7 @@
 							<a class="nav-link" href="index.html">Home</a>
 						</li>
 						<li><a class="nav-link" href="shop.html">Loja</a></li>
-						<li><a class="nav-link" href="contact.html">Contatof</a></li>
+						<li><a class="nav-link" href="contact.html">Contato</a></li>
 					</ul>
 
 					<ul class="custom-navbar-cta navbar-nav mb-2 mb-md-0 ms-5">
@@ -279,66 +279,100 @@
 		                <table class="table site-block-order-table mb-5">
 		                  <thead>
 		                    <th>Produto</th>
-		                    <th>Total</th>
+		                    <th>Valor</th>
 		                  </thead>
+		                  <tbody id="checkout-items">
+		                    <!-- Itens do carrinho serão renderizados aqui -->
+		                  </tbody>
 		                  <tbody>
 		                    <tr>
-		                      <td>Top<strong class="mx-2">x</strong> 1</td>
-		                      <td>$250.00</td>
-		                    </tr>
-		                    <tr>
-		                      <td>Calças Legging<strong class="mx-2">x</strong>   1</td>
-		                      <td>$100.00</td>
-		                    </tr>
-		                    <tr>
 		                      <td class="text-black font-weight-bold"><strong>Subtotal</strong></td>
-		                      <td class="text-black">$350.00</td>
+		                      <td class="text-black" id="checkout-subtotal">R$ 0,00</td>
 		                    </tr>
 		                    <tr>
 		                      <td class="text-black font-weight-bold"><strong>Total</strong></td>
-		                      <td class="text-black font-weight-bold"><strong>$350.00</strong></td>
+		                      <td class="text-black font-weight-bold"><strong id="checkout-total">R$ 0,00</strong></td>
 		                    </tr>
 		                  </tbody>
 		                </table>
 
 		                <div class="border p-3 mb-3">
-		                  <h3 class="h6 mb-0"><a class="d-block" data-bs-toggle="collapse" href="#collapsebank" role="button" aria-expanded="false" aria-controls="collapsebank">Pix</a></h3>
+		                  <h3 class="h6 mb-0"><a class="d-block" data-bs-toggle="collapse" href="#collapsebank" role="button" aria-expanded="false" aria-controls="collapsebank">Cartão de Crédito</a></h3>
 
-		                  <div class="collapse" id="collapsebank">
+		                  <div class="collapse show" id="collapsebank">
 		                    <div class="py-2">
-		                      <p class="mb-0">Make your payment directly into our bank account. Please use your Order ID as the payment reference. Your order won’t be shipped until the funds have cleared in our account.</p>
+		                      <form id="payment-form" class="payment-form">
+		                        <div class="form-group mb-3">
+		                          <label class="form-label">Número do Cartão</label>
+		                          <input type="text" class="form-control" id="card_number" placeholder="0000 0000 0000 0000" required maxlength="19">
+		                          <small class="text-muted" id="card-brand"></small>
+		                        </div>
+
+		                        <div class="form-group mb-3">
+		                          <label class="form-label">Titular do Cartão</label>
+		                          <input type="text" class="form-control" id="card_holder" placeholder="Nome no cartão" required>
+		                        </div>
+
+		                        <div class="row">
+		                          <div class="col-md-6">
+		                            <div class="form-group mb-3">
+		                              <label class="form-label">Vencimento</label>
+		                              <input type="text" class="form-control" id="card_expiration_date" placeholder="MM/AA" required maxlength="5">
+		                            </div>
+		                          </div>
+		                          <div class="col-md-6">
+		                            <div class="form-group mb-3">
+		                              <label class="form-label">CVV</label>
+		                              <input type="text" class="form-control" id="card_cvv" placeholder="000" required maxlength="4">
+		                            </div>
+		                          </div>
+		                        </div>
+
+		                        <div class="form-group mb-3">
+		                          <label class="form-label">Parcelas</label>
+		                          <select class="form-control" id="installments">
+		                            <option value="1">1x sem juros</option>
+		                            <option value="2">2x</option>
+		                            <option value="3">3x</option>
+		                            <option value="6">6x</option>
+		                            <option value="12">12x</option>
+		                          </select>
+		                        </div>
+
+		                        <button type="submit" class="btn btn-black w-100">Processar Pagamento</button>
+		                      </form>
 		                    </div>
 		                  </div>
 		                </div>
 
-		                <div class="border p-3 mb-3">
-		                  <h3 class="h6 mb-0"><a class="d-block" data-bs-toggle="collapse" href="#collapsecheque" role="button" aria-expanded="false" aria-controls="collapsecheque">Cartão de Débito</a></h3>
+                <!-- DESABILITANDO TEMPORARIAMENTE PAGAMENTO VIA DÉBITO
+				<div class="border p-3 mb-3">
+	                  <h3 class="h6 mb-0"><a class="d-block" data-bs-toggle="collapse" href="#collapsecheque" role="button" aria-expanded="false" aria-controls="collapsecheque">Cartão de Débito</a></h3>
 
-		                  <div class="collapse" id="collapsecheque">
-		                    <div class="py-2">
-		                      <p class="mb-0">Make your payment directly into our bank account. Please use your Order ID as the payment reference. Your order won’t be shipped until the funds have cleared in our account.</p>
-		                    </div>
-		                  </div>
-		                </div>
+	                  <div class="collapse" id="collapsecheque">
+	                    <div class="py-2">
+	                      <p class="mb-0">Make your payment directly into our bank account. Please use your Order ID as the payment reference. Your order won't be shipped until the funds have cleared in our account.</p>
+	                    </div>
+	                  </div>
+	                </div> -->
 
-		                <div class="border p-3 mb-5">
-		                  <h3 class="h6 mb-0"><a class="d-block" data-bs-toggle="collapse" href="#collapsepaypal" role="button" aria-expanded="false" aria-controls="collapsepaypal">Cartão de Crédito</a></h3>
+	                <div class="border p-3 mb-3">
+	                  <h3 class="h6 mb-0"><a class="d-block" data-bs-toggle="collapse" href="#collapsepix" role="button" aria-expanded="false" aria-controls="collapsepix">Pix</a></h3>
 
-		                  <div class="collapse" id="collapsepaypal">
-		                    <div class="py-2">
-		                      <p class="mb-0">Make your payment directly into our bank account. Please use your Order ID as the payment reference. Your order won’t be shipped until the funds have cleared in our account.</p>
-		                    </div>
-		                  </div>
-		                </div>
+	                  <div class="collapse" id="collapsepix">
+	                    <div class="py-2">
+	                      <p class="mb-0">Integração com Pix em breve...</p>
+	                    </div>
+	                  </div>
+	                </div>
 
-		                <div class="form-group">
-		                  <button class="btn btn-black btn-lg py-3 btn-block" onclick="window.location='thankyou.html'">Finalizar Compra</button>
-		                </div>
 
-		              </div>
+                <div class="form-group">
+	                  <button class="btn btn-black btn-lg py-3 btn-block" onclick="submitPayment()">Finalizar Compra</button>
+	                </div>		              </div>
 		            </div>
 		          </div>
-
+					<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 		        </div>
 		      </div>
 		      <!-- </form> -->
@@ -428,6 +462,58 @@
 		<script src="js/bootstrap.bundle.min.js"></script>
 		<script src="js/tiny-slider.js"></script>
 		<script src="js/custom.js"></script>
+		<script src="js/payment.js"></script>
+		<script src="js/advanced-payment.js"></script>
+		<script src="js/cart.js"></script>
+		<script>
+			// Renderizar itens do carrinho no checkout
+			function renderCheckoutItems() {
+				const cartItems = cart.getCart();
+				const container = document.getElementById('checkout-items');
+				
+				if (cartItems.length === 0) {
+					container.innerHTML = '<tr><td colspan="2" class="text-center text-muted">Nenhum item no carrinho</td></tr>';
+					document.getElementById('checkout-subtotal').textContent = 'R$ 0,00';
+					document.getElementById('checkout-total').textContent = 'R$ 0,00';
+					return;
+				}
+
+				container.innerHTML = cartItems.map(item => {
+					const itemTotal = parseFloat(item.price.replace(/[^0-9.]/g, '')) * item.quantity;
+					return `
+						<tr>
+							<td>${item.title}<strong class="mx-2">x</strong> ${item.quantity}</td>
+							<td>R$ ${itemTotal.toFixed(2).replace('.', ',')}</td>
+						</tr>
+					`;
+				}).join('');
+
+				const total = cart.getTotal();
+				document.getElementById('checkout-subtotal').textContent = `R$ ${total.toFixed(2).replace('.', ',')}`;
+				document.getElementById('checkout-total').textContent = `R$ ${total.toFixed(2).replace('.', ',')}`;
+			}
+
+			// Renderizar ao carregar
+			document.addEventListener('DOMContentLoaded', () => {
+				renderCheckoutItems();
+			});
+
+			// Atualizar quando carrinho mudar
+			window.addEventListener('cartUpdated', () => {
+				renderCheckoutItems();
+			});
+
+			function submitPayment() {
+				const form = document.getElementById('payment-form');
+				
+				if (form) {
+					form.dispatchEvent(new Event('submit'));
+				} else {
+					// Fallback se não houver formulário visível
+					window.location = 'thankyou.html';
+				}
+			}
+		</script>
 	</body>
 
 </html>
