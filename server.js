@@ -88,51 +88,39 @@ app.post('/api/pagamento-pagar-me', async (req, res) => {
   }
 });
 
-// ============ MERCADO PAGO ============
-// Rota para processar pagamento com Mercado Pago
+// ============ MERCADO PAGO - PAYMENT BRICK ============
+// Rota para processar pagamento com Payment Brick
 app.post('/api/pagamento-mercado-pago', async (req, res) => {
   try {
     const {
-      card_number,
-      card_holder,
-      card_expiration_date,
-      card_cvv,
+      payment_id,
+      order_id,
       amount,
       customer_email,
       customer_name,
-      customer_phone,
-      installments,
-      order_id
+      installments
     } = req.body;
 
-    // Validação básica
-    // Preferimos receber um token gerado no cliente via MercadoPago.js (evita expor dados do cartão ao servidor)
-    const { token, payment_method_id } = req.body;
-
-    if (!token) {
-      return res.status(400).json({ error: 'É necessário enviar o token do cartão gerado no cliente (campo "token")' });
+    // Validação básica: Payment Brick retorna payment_id, não token
+    if (!payment_id) {
+      return res.status(400).json({ 
+        error: 'É necessário enviar o payment_id gerado pelo Payment Brick' 
+      });
     }
 
-    // Montar payload conforme documentação Mercado Pago (usar token gerado no cliente)
-    const payload = {
-      transaction_amount: amount,
-      token: token,
-      description: `Pedido ${order_id}`,
-      installments: installments || 1,
-      payment_method_id: payment_method_id || 'credit_card',
-      payer: {
-        email: customer_email
-      },
-      external_reference: order_id
-    };
+    if (!amount || amount <= 0) {
+      return res.status(400).json({ 
+        error: 'O valor da transação é obrigatório e deve ser maior que 0' 
+      });
+    }
 
-    // Log para diagnóstico: payload recebido e enviado
-    console.log('Recebido /api/pagamento-mercado-pago -> req.body:', JSON.stringify(req.body));
-    console.log('Payload a ser enviado ao Mercado Pago:', JSON.stringify(payload));
+    // Log para diagnóstico
+    console.log('Recebido /api/pagamento-mercado-pago (Payment Brick) -> req.body:', JSON.stringify(req.body));
 
-    const response = await axios.post(
-      'https://api.mercadopago.com/v1/payments',
-      payload,
+    // Com Payment Brick, o payment_id já foi processado pelo Mercado Pago
+    // Você pode opcionalmente fazer uma busca do payment para confirmar status
+    const paymentResponse = await axios.get(
+      `https://api.mercadopago.com/v1/payments/${payment_id}`,
       {
         headers: {
           'Authorization': `Bearer ${process.env.MERCADO_PAGO_TOKEN}`,
@@ -141,19 +129,23 @@ app.post('/api/pagamento-mercado-pago', async (req, res) => {
       }
     );
 
+    console.log('Resposta Mercado Pago (Payment Brick):', JSON.stringify(paymentResponse.data));
+
+    // Retornar resultado
     res.json({
-      success: true,
-      transaction_id: response.data.id,
-      status: response.data.status,
-      raw: response.data,
-      message: 'Pagamento processado com sucesso'
+      success: paymentResponse.data.status === 'approved',
+      transaction_id: paymentResponse.data.id,
+      status: paymentResponse.data.status,
+      message: paymentResponse.data.status === 'approved' ? 'Pagamento aprovado com sucesso!' : `Pagamento com status: ${paymentResponse.data.status}`,
+      raw: paymentResponse.data
     });
 
   } catch (error) {
-    console.error('Erro Mercado Pago:', error.response?.data || error.message);
-    res.status(500).json({
+    console.error('Erro Mercado Pago (Payment Brick):', error.response?.data || error.message);
+    res.status(error.response?.status || 500).json({
       error: 'Erro ao processar pagamento',
-      details: error.response?.data || error.message
+      details: error.response?.data?.message || error.message,
+      status: error.response?.data?.status
     });
   }
 });
