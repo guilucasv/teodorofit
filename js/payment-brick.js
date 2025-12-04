@@ -56,13 +56,18 @@ class PaymentBrickManager {
             console.log('✓ Payment Brick pronto');
             this.hideBrickLoader();
           },
-          onSubmit: (data) => {
-            console.log('Payment Brick submitted:', data);
-            return this.handlePaymentSubmit(data);
+          onSubmit: async (formData) => {
+            console.log('✓ Payment Brick submitted with formData:', formData);
+            try {
+              await this.handlePaymentSubmit(formData);
+            } catch (error) {
+              console.error('✗ Erro ao processar pagamento:', error);
+            }
           },
           onError: (error) => {
             console.error('✗ Erro no Payment Brick:', error);
-            this.showNotification(`Erro: ${error.message}`, 'error');
+            const errorMsg = error?.cause?.[0]?.description || error?.message || JSON.stringify(error);
+            this.showNotification(`Erro: ${errorMsg}`, 'error');
           },
           onInstallmentChange: (installmentData) => {
             console.log('Installment changed:', installmentData);
@@ -90,10 +95,27 @@ class PaymentBrickManager {
    */
   async handlePaymentSubmit(data) {
     try {
-      console.log('Processando pagamento...', data);
+      console.log('🔄 Processando pagamento no servidor...');
 
       // Mostrar loading
       this.showNotification('Processando pagamento...', 'info');
+
+      // Extrair payment_id do formData
+      const payment_id = data?.id;
+      
+      if (!payment_id) {
+        console.warn('⚠️ Nenhum payment_id no formData. Tentando enviar formData completo.');
+      }
+
+      console.log('Dados enviados ao backend:', {
+        payment_id: payment_id || data?.id,
+        order_id: `ORD-${Date.now()}`,
+        amount: this.getOrderTotal(),
+        customer_email: this.getCustomerEmail(),
+        customer_name: this.getCustomerName(),
+        installments: data?.installments || 1,
+        formData_keys: Object.keys(data || {})
+      });
 
       // Enviar dados para backend
       const response = await fetch('/api/pagamento-mercado-pago', {
@@ -102,7 +124,7 @@ class PaymentBrickManager {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          payment_id: data.id, // Payment ID gerado pelo Brick
+          payment_id: payment_id || data?.id,
           order_id: `ORD-${Date.now()}`,
           amount: this.getOrderTotal(),
           customer_email: this.getCustomerEmail(),
@@ -111,25 +133,48 @@ class PaymentBrickManager {
         })
       });
 
-      const result = await response.json();
+      console.log('📡 Response status:', response.status);
+      console.log('📡 Response headers:', response.headers.get('content-type'));
+
+      // Verificar se response é válido
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('✗ Erro HTTP:', response.status, errorText);
+        throw new Error(`Erro ${response.status}: ${errorText || 'Sem resposta do servidor'}`);
+      }
+
+      // Tentar fazer parse de JSON
+      let result;
+      try {
+        result = await response.json();
+      } catch (parseError) {
+        const text = await response.text();
+        console.error('✗ Erro ao fazer parse JSON:', parseError);
+        console.error('📝 Conteúdo da resposta:', text);
+        throw new Error('Resposta inválida do servidor (não é JSON válido)');
+      }
+
+      console.log('✓ Resposta do servidor:', result);
 
       if (result.success) {
-        console.log('✓ Pagamento aprovado!', result);
+        console.log('✅ Pagamento aprovado!', result);
         this.showNotification('Pagamento aprovado! 🎉', 'success');
         
         // Redirecionar para página de sucesso após 2 segundos
         setTimeout(() => {
           window.location = `thankyou.html?transaction=${result.transaction_id}`;
         }, 2000);
+        return true;
       } else {
         console.error('✗ Pagamento recusado:', result);
-        throw new Error(result.message || 'Pagamento recusado pelo Mercado Pago');
+        const errorMsg = result.message || result.details || 'Pagamento recusado pelo Mercado Pago';
+        throw new Error(errorMsg);
       }
 
     } catch (error) {
       console.error('✗ Erro ao processar pagamento:', error);
       this.showNotification(`Erro: ${error.message}`, 'error');
-      return false; // Impede redirecionamento automático do Brick
+      throw error;
     }
   }
 
@@ -138,10 +183,16 @@ class PaymentBrickManager {
    */
   getOrderTotal() {
     const totalElement = document.getElementById('checkout-total');
-    if (!totalElement) return 0;
+    if (!totalElement) {
+      console.warn('⚠️ Elemento #checkout-total não encontrado');
+      return 0;
+    }
 
     let text = totalElement.textContent || totalElement.innerText;
-    if (!text) return 0;
+    if (!text) {
+      console.warn('⚠️ Valor total vazio');
+      return 0;
+    }
 
     // Parse: 'R$ 1.234,56' -> 1234.56
     let cleaned = text.replace(/\s/g, '').replace('R$', '');
@@ -156,6 +207,7 @@ class PaymentBrickManager {
     }
 
     const value = parseFloat(cleaned);
+    console.log('💰 Total parseado:', value);
     return isNaN(value) ? 0 : value;
   }
 
@@ -164,7 +216,9 @@ class PaymentBrickManager {
    */
   getCustomerEmail() {
     const emailInput = document.getElementById('c_email_address');
-    return emailInput ? emailInput.value : 'customer@example.com';
+    const email = emailInput ? emailInput.value : 'customer@example.com';
+    console.log('📧 Email:', email);
+    return email;
   }
 
   /**
@@ -175,20 +229,24 @@ class PaymentBrickManager {
     const lastNameInput = document.getElementById('c_lname');
     const firstName = firstNameInput ? firstNameInput.value : '';
     const lastName = lastNameInput ? lastNameInput.value : '';
-    return `${firstName} ${lastName}`.trim();
+    const fullName = `${firstName} ${lastName}`.trim();
+    console.log('👤 Nome:', fullName);
+    return fullName;
   }
 
   /**
    * Show notification
    */
   showNotification(message, type = 'info') {
+    console.log(`[${type.toUpperCase()}] ${message}`);
+    
     const notification = document.createElement('div');
     const alertClass = type === 'success' ? 'alert-success' : type === 'error' ? 'alert-danger' : 'alert-info';
     notification.className = `alert ${alertClass} alert-dismissible fade show`;
     notification.role = 'alert';
     notification.innerHTML = `
       ${message}
-      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     `;
     notification.style.position = 'fixed';
     notification.style.top = '20px';
@@ -218,13 +276,17 @@ class PaymentBrickManager {
    * Update amount (se carrinho mudar)
    */
   updateAmount(newAmount) {
-    if (this.brickInstance && window.mp) {
+    try {
+      if (this.brickInstance && window.mp) {
       window.mp.bricks().update('payment', this.brickId, {
         initialization: {
           amount: newAmount
         }
       });
-      console.log(`✓ Amount atualizado para: ${newAmount}`);
+        console.log(`💰 Amount atualizado para: ${newAmount}`);
+      }
+    } catch (error) {
+      console.warn('⚠️ Erro ao atualizar amount:', error.message);
     }
   }
 }
@@ -233,9 +295,14 @@ class PaymentBrickManager {
  * Initialize Payment Brick when DOM is ready
  */
 document.addEventListener('DOMContentLoaded', () => {
+  console.log('=== Inicializando Payment Brick ===');
+  
   // Valores do .env (configurados no checkout.html)
   const publicKey = window.MP_PUBLIC_KEY || '';
   const brickId = window.MP_BRICK_ID || '';
+
+  console.log('🔑 Public Key:', publicKey ? '✓ Definida' : '✗ Não definida');
+  console.log('🧱 Brick ID:', brickId ? '✓ Definida' : '✗ Não definida');
 
   if (!publicKey || !brickId) {
     console.error('✗ PUBLIC_KEY ou BRICK_ID não definidos. Verifique o arquivo de configuração.');
@@ -250,8 +317,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Atualizar amount se carrinho for atualizado
   window.addEventListener('cartUpdated', () => {
-    window.paymentBrickManager.updateAmount(
-      window.paymentBrickManager.getOrderTotal()
-    );
+    const newTotal = window.paymentBrickManager.getOrderTotal();
+    window.paymentBrickManager.updateAmount(newTotal);
   });
+
+  console.log('=== Payment Brick inicializado ===');
 });
