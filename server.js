@@ -106,49 +106,37 @@ app.post('/api/pagamento-mercado-pago', async (req, res) => {
     } = req.body;
 
     // Validação básica
-    if (!card_number || !card_holder || !card_expiration_date || !card_cvv || !amount) {
-      return res.status(400).json({ error: 'Campos de cartão obrigatórios' });
+    // Preferimos receber um token gerado no cliente via MercadoPago.js (evita expor dados do cartão ao servidor)
+    const { token, payment_method_id } = req.body;
+
+    if (!token) {
+      return res.status(400).json({ error: 'É necessário enviar o token do cartão gerado no cliente (campo "token")' });
     }
+
+    // Montar payload conforme documentação Mercado Pago (usar token gerado no cliente)
+    const payload = {
+      transaction_amount: amount,
+      token: token,
+      description: `Pedido ${order_id}`,
+      installments: installments || 1,
+      payment_method_id: payment_method_id || 'credit_card',
+      payer: {
+        email: customer_email
+      },
+      external_reference: order_id
+    };
+
+    // Log para diagnóstico: payload recebido e enviado
+    console.log('Recebido /api/pagamento-mercado-pago -> req.body:', JSON.stringify(req.body));
+    console.log('Payload a ser enviado ao Mercado Pago:', JSON.stringify(payload));
 
     const response = await axios.post(
       'https://api.mercadopago.com/v1/payments',
-      {
-        transaction_amount: amount,
-        payment_method_id: 'credit_card',
-        payer: {
-          email: customer_email,
-          first_name: customer_name.split(' ')[0],
-          last_name: customer_name.split(' ').slice(1).join(' '),
-          identification: {
-            type: 'CPF',
-            number: '00000000000' // Será capturado do formulário
-          },
-          phone: {
-            area_code: customer_phone.substring(0, 2),
-            number: customer_phone.substring(2)
-          },
-          address: {
-            zip_code: '00000000'
-          }
-        },
-        card: {
-          number: card_number.replace(/\s/g, ''),
-          cardholder: {
-            name: card_holder
-          },
-          expiration_month: parseInt(card_expiration_date.split('/')[0]),
-          expiration_year: parseInt(card_expiration_date.split('/')[1]),
-          security_code: card_cvv
-        },
-        installments: installments || 1,
-        description: `Pedido ${order_id}`,
-        external_reference: order_id,
-        statement_descriptor: 'TEODORO FITNESS',
-        binary_mode: true
-      },
+      payload,
       {
         headers: {
-          'Authorization': `Bearer ${process.env.MERCADO_PAGO_TOKEN}`
+          'Authorization': `Bearer ${process.env.MERCADO_PAGO_TOKEN}`,
+          'Content-Type': 'application/json'
         }
       }
     );
@@ -157,6 +145,7 @@ app.post('/api/pagamento-mercado-pago', async (req, res) => {
       success: true,
       transaction_id: response.data.id,
       status: response.data.status,
+      raw: response.data,
       message: 'Pagamento processado com sucesso'
     });
 
@@ -205,9 +194,25 @@ app.get('/api/status', (req, res) => {
   });
 });
 
+// Verifica se o access token do Mercado Pago é válido (sem criar pagamento)
+app.get('/api/mercado-pago-test', async (req, res) => {
+  try {
+    const response = await axios.get('https://api.mercadopago.com/v1/users/me', {
+      headers: { 'Authorization': `Bearer ${process.env.MERCADO_PAGO_TOKEN}` }
+    });
+    res.json({ ok: true, account: response.data });
+  } catch (error) {
+    console.error('Erro validação Mercado Pago:', error.response?.data || error.message);
+    res.status(error.response?.status || 500).json({ ok: false, error: error.response?.data || error.message });
+  }
+});
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Servidor de pagamentos rodando na porta ${PORT}`);
   console.log(`Pagar.me: ${process.env.PAGAR_ME_API_KEY ? 'Configurado' : 'Não configurado'}`);
-  console.log(`Mercado Pago: ${process.env.MERCADO_PAGO_TOKEN ? 'Configurado' : 'Não configurado'}`);
+  // Mostrar apenas prefixo mascarado do token para diagnóstico (não expor o token completo)
+  const mpToken = process.env.MERCADO_PAGO_TOKEN || '';
+  const masked = mpToken ? (mpToken.length > 10 ? mpToken.slice(0, 6) + '...' + mpToken.slice(-4) : mpToken) : '';
+  console.log(`Mercado Pago: ${mpToken ? 'Configurado' : 'Não configurado'} (token: ${masked})`);
 });

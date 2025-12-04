@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste de Pagamento - Teodoro Fitness</title>
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: #f5f5f5;
+            padding: 20px;
+        }
+        .test-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .header h1 {
+            color: #1a1a1a;
+            margin-bottom: 10px;
+        }
+        .status-indicator {
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 4px;
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+        .status-indicator.success {
+            background: #d4edda;
+            color: #155724;
+        }
+        .status-indicator.error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        .status-indicator.info {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+        .form-section {
+            margin-bottom: 25px;
+        }
+        .form-section h5 {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #1a1a1a;
+            border-bottom: 2px solid #ef5734;
+            padding-bottom: 10px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            font-weight: 500;
+            margin-bottom: 8px;
+            color: #333;
+        }
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        .button-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 30px;
+        }
+        .btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 4px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+        .btn-primary {
+            background: #ef5734;
+            color: white;
+        }
+        .btn-primary:hover {
+            background: #d63d25;
+        }
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #333;
+            border: 1px solid #ddd;
+        }
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+        .response-area {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f9f9f9;
+            border: 1px solid #eee;
+            border-radius: 4px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .response-area h5 {
+            margin-top: 0;
+            color: #1a1a1a;
+        }
+        .response-text {
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            white-space: pre-wrap;
+            word-break: break-all;
+            color: #333;
+        }
+        .loading {
+            text-align: center;
+            padding: 20px;
+        }
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #ef5734;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .alert {
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+        .alert-info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        .alert-warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <div class="header">
+            <h1><i class="fa fa-credit-card"></i> Teste de Pagamento</h1>
+            <p style="color: #666;">Teodoro Fitness - API de Pagamentos</p>
+            <div id="status-indicator" class="status-indicator info">
+                <i class="fa fa-spinner fa-spin"></i> Verificando servidor...
+            </div>
+        </div>
+
+        <div class="alert alert-info">
+            <strong>ℹ️ Cartões de Teste:</strong><br>
+            Visa: <code>4111111111111111</code><br>
+            Mastercard: <code>5555555555554444</code><br>
+            Data: 12/25 | CVV: 123
+        </div>
+
+        <form id="payment-form">
+            <!-- Dados do Cartão -->
+            <div class="form-section">
+                <h5><i class="fa fa-credit-card"></i> Dados do Cartão</h5>
+                
+                <div class="form-group">
+                    <label for="card_number">Número do Cartão *</label>
+                    <input type="text" id="card_number" name="card_number" placeholder="0000 0000 0000 0000" required maxlength="19">
+                </div>
+
+                <div class="form-group">
+                    <label for="card_holder">Titular do Cartão *</label>
+                    <input type="text" id="card_holder" name="card_holder" placeholder="Nome no cartão" required>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="card_expiration_date">Vencimento *</label>
+                        <input type="text" id="card_expiration_date" name="card_expiration_date" placeholder="MM/AA" required maxlength="5">
+                    </div>
+                    <div class="form-group">
+                        <label for="card_cvv">CVV *</label>
+                        <input type="text" id="card_cvv" name="card_cvv" placeholder="000" required maxlength="4">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dados do Cliente -->
+            <div class="form-section">
+                <h5><i class="fa fa-user"></i> Dados do Cliente</h5>
+                
+                <div class="form-group">
+                    <label for="customer_name">Nome Completo *</label>
+                    <input type="text" id="customer_name" name="customer_name" placeholder="Seu nome" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="customer_email">Email *</label>
+                    <input type="email" id="customer_email" name="customer_email" placeholder="seu@email.com" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="customer_phone">Telefone *</label>
+                    <input type="tel" id="customer_phone" name="customer_phone" placeholder="(11) 98765-4321" required>
+                </div>
+            </div>
+
+            <!-- Dados do Pedido -->
+            <div class="form-section">
+                <h5><i class="fa fa-shopping-bag"></i> Dados do Pedido</h5>
+                
+                <div class="form-group">
+                    <label for="amount">Valor (R$) *</label>
+                    <input type="number" id="amount" name="amount" placeholder="100.00" step="0.01" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="installments">Parcelas *</label>
+                    <select id="installments" name="installments" required>
+                        <option value="1">1x sem juros</option>
+                        <option value="2">2x</option>
+                        <option value="3">3x</option>
+                        <option value="6">6x</option>
+                        <option value="12">12x</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="order_id">ID do Pedido (opcional)</label>
+                    <input type="text" id="order_id" name="order_id" placeholder="ORD-001" value="">
+                </div>
+            </div>
+
+            <div class="button-group">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fa fa-check"></i> Processar Pagamento
+                </button>
+                <button type="reset" class="btn btn-secondary">
+                    <i class="fa fa-redo"></i> Limpar Formulário
+                </button>
+            </div>
+        </form>
+
+        <!-- Área de Resposta -->
+        <div id="response-area" class="response-area" style="display: none;">
+            <h5><i class="fa fa-info-circle"></i> Resposta do Servidor</h5>
+            <div id="response-text" class="response-text"></div>
+        </div>
+
+        <!-- Área de Carregamento -->
+        <div id="loading-area" class="loading" style="display: none;">
+            <div class="spinner"></div>
+            <p style="margin-top: 15px; color: #666;">Processando pagamento...</p>
+        </div>
+    </div>
+
+    <script>
+        // Pré-preencher order ID
+        document.getElementById('order_id').value = 'TEST-' + Date.now();
+
+        // Verificar status do servidor
+        window.addEventListener('DOMContentLoaded', async () => {
+            try {
+                const response = await fetch('http://localhost:3000/api/status');
+                const data = await response.json();
+                
+                const indicator = document.getElementById('status-indicator');
+                if (response.ok) {
+                    indicator.className = 'status-indicator success';
+                    indicator.innerHTML = '<i class="fa fa-check-circle"></i> Servidor conectado!';
+                } else {
+                    throw new Error('Falha na resposta');
+                }
+            } catch (error) {
+                const indicator = document.getElementById('status-indicator');
+                indicator.className = 'status-indicator error';
+                indicator.innerHTML = '<i class="fa fa-times-circle"></i> Servidor desconectado! Inicie com: npm start';
+            }
+        });
+
+        // Enviar formulário
+        document.getElementById('payment-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const form = document.getElementById('payment-form');
+            const loadingArea = document.getElementById('loading-area');
+            const responseArea = document.getElementById('response-area');
+            const responseText = document.getElementById('response-text');
+
+            // Mostrar loading
+            form.style.display = 'none';
+            loadingArea.style.display = 'block';
+            responseArea.style.display = 'none';
+
+            try {
+                const paymentData = {
+                    card_number: document.getElementById('card_number').value,
+                    card_holder: document.getElementById('card_holder').value,
+                    card_expiration_date: document.getElementById('card_expiration_date').value,
+                    card_cvv: document.getElementById('card_cvv').value,
+                    amount: parseFloat(document.getElementById('amount').value),
+                    customer_email: document.getElementById('customer_email').value,
+                    customer_name: document.getElementById('customer_name').value,
+                    customer_phone: document.getElementById('customer_phone').value,
+                    installments: parseInt(document.getElementById('installments').value),
+                    order_id: document.getElementById('order_id').value
+                };
+
+                const response = await fetch('http://localhost:3000/api/pagamento-mercado-pago', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(paymentData)
+                });
+
+                const result = await response.json();
+
+                // Mostrar resposta
+                loadingArea.style.display = 'none';
+                responseArea.style.display = 'block';
+                responseText.textContent = JSON.stringify(result, null, 2);
+
+                if (result.success) {
+                    responseText.style.color = '#155724';
+                } else {
+                    responseText.style.color = '#721c24';
+                }
+
+            } catch (error) {
+                loadingArea.style.display = 'none';
+                responseArea.style.display = 'block';
+                responseText.textContent = 'Erro: ' + error.message + '\n\nCertifique-se de que o servidor está rodando em http://localhost:3000';
+                responseText.style.color = '#721c24';
+            }
+        });
+
+        // Formatar número do cartão
+        document.getElementById('card_number').addEventListener('input', (e) => {
+            e.target.value = e.target.value
+                .replace(/\D/g, '')
+                .replace(/(\d{4})/g, '$1 ')
+                .trim()
+                .substring(0, 19);
+        });
+
+        // Formatar data de expiração
+        document.getElementById('card_expiration_date').addEventListener('input', (e) => {
+            const cleaned = e.target.value.replace(/\D/g, '');
+            if (cleaned.length >= 2) {
+                e.target.value = cleaned.substring(0, 2) + '/' + cleaned.substring(2, 4);
+            } else {
+                e.target.value = cleaned;
+            }
+        });
+
+        // Apenas números no CVV
+        document.getElementById('card_cvv').addEventListener('input', (e) => {
+            e.target.value = e.target.value.replace(/\D/g, '').substring(0, 4);
+        });
+    </script>
+</body>
+</html>

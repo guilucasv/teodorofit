@@ -71,10 +71,11 @@ class PaymentProcessor {
     const cleaned = cardNumber.replace(/\D/g, '');
     const patterns = {
       visa: /^4[0-9]{12}(?:[0-9]{3})?$/,
-      mastercard: /^5[1-5][0-9]{14}$/,
+      mastercard: /^(5[1-5][0-9]{14}|2(?:2[2-9][0-9]{12}|[3-6][0-9]{13}|7(?:0[0-9]{12}|1[0-9]{12}|20[0-9]{11})))$/,
       amex: /^3[47][0-9]{13}$/,
-      elo: /^(4011(78|79)|43(1274|8935)|45(1416|7393|763(1|2))|50(4175|6699|67[0-6][0-9]|677[0-8]|9[0-8][0-9]|99[0-8])|627780|63(6297|6368)|650(03([^3])|04([0-9])|05(0|1)|4([0-3]|[5-9])|5([0-2]|[4-9])|9([0-2]|[3-9])|541|592|7(70|71)|9(201|66))|651652|655000|655021|65523[1-3])|627595|992915)/,
-      hipercard: /^(384100|384140|384160|606282|637095|637568|60(?!11))/
+      // Padrões simplificados para bandeiras menos comuns (Elo, Hipercard). Evitam regexes muito complexos que podem causar erros.
+      elo: /^(4011|431274|438935|4571|504175|506699|627780|636297|636368|650|651652|655)/,
+      hipercard: /^(3841|606282|637095|637568)/
     };
 
     for (const [brand, regex] of Object.entries(patterns)) {
@@ -177,3 +178,9 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 });
+
+// Garantir que a classe e a instância estejam disponíveis globalmente
+if (typeof window !== 'undefined') {
+  window.PaymentProcessor = PaymentProcessor;
+  window.paymentProcessor = paymentProcessor;
+}

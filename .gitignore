@@ -1,0 +1,44 @@
+## Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+## Environment files (keep example files)
+.env
+.env.*
+!.env.example
+
+## Logs
+logs/
+*.log
+
+## Build / output
+dist/
+build/
+.cache/
+coverage/
+.nyc_output/
+
+## OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+## IDEs / editors
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+## Certificates, keys
+*.pem
+*.key
+*.crt
+*.p12
+
+## Misc
+.sass-cache/
+*.tgz
+.parcel-cache/

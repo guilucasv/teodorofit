@@ -304,26 +304,28 @@
 		                      <form id="payment-form" class="payment-form">
 		                        <div class="form-group mb-3">
 		                          <label class="form-label">Número do Cartão</label>
-		                          <input type="text" class="form-control" id="card_number" placeholder="0000 0000 0000 0000" required maxlength="19">
+													<input type="text" class="form-control" id="card_number" name="cardNumber" placeholder="0000 0000 0000 0000" required maxlength="19">
 		                          <small class="text-muted" id="card-brand"></small>
 		                        </div>
 
 		                        <div class="form-group mb-3">
 		                          <label class="form-label">Titular do Cartão</label>
-		                          <input type="text" class="form-control" id="card_holder" placeholder="Nome no cartão" required>
+													<input type="text" class="form-control" id="card_holder" name="cardholderName" placeholder="Nome no cartão" required>
 		                        </div>
 
 		                        <div class="row">
 		                          <div class="col-md-6">
 		                            <div class="form-group mb-3">
 		                              <label class="form-label">Vencimento</label>
-		                              <input type="text" class="form-control" id="card_expiration_date" placeholder="MM/AA" required maxlength="5">
+															<input type="text" class="form-control" id="card_expiration_date" placeholder="MM/AA" required maxlength="5">
+															<input type="hidden" id="card_expiration_month" name="cardExpirationMonth">
+															<input type="hidden" id="card_expiration_year" name="cardExpirationYear">
 		                            </div>
 		                          </div>
 		                          <div class="col-md-6">
 		                            <div class="form-group mb-3">
 		                              <label class="form-label">CVV</label>
-		                              <input type="text" class="form-control" id="card_cvv" placeholder="000" required maxlength="4">
+															<input type="text" class="form-control" id="card_cvv" name="securityCode" placeholder="000" required maxlength="4">
 		                            </div>
 		                          </div>
 		                        </div>
@@ -461,6 +463,14 @@
 
 		<script src="js/bootstrap.bundle.min.js"></script>
 		<script src="js/tiny-slider.js"></script>
+		<script src="https://secure.mlstatic.com/sdk/javascript/v1/mercadopago.js"></script>
+		<script>
+			// Substitua pela sua public key do Mercado Pago (APP_USR-... ou APP_USR em produção)
+			window.MP_PUBLIC_KEY = window.MP_PUBLIC_KEY || 'TEST-25c6b641-d616-44b2-9d51-870014aa2474';
+			if (window.Mercadopago && window.MP_PUBLIC_KEY) {
+				Mercadopago.setPublishableKey(window.MP_PUBLIC_KEY);
+			}
+		</script>
 		<script src="js/custom.js"></script>
 		<script src="js/payment.js"></script>
 		<script src="js/advanced-payment.js"></script>

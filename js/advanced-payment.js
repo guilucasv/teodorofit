@@ -7,6 +7,38 @@ class AdvancedPaymentProcessor {
     this.setupEventListeners();
   }
 
+  // Aguarda o carregamento do SDK do Mercado Pago (window.Mercadopago)
+  // timeout em ms (padrão 5000)
+  ensureMercadoPagoLoaded(timeout = 5000) {
+    return new Promise((resolve, reject) => {
+      const interval = 100;
+      let waited = 0;
+
+      const check = () => {
+        if (typeof window !== 'undefined' && window.Mercadopago) {
+          // Se houver chave pública definida, garantir que ela foi aplicada
+          try {
+            if (window.MP_PUBLIC_KEY) {
+              Mercadopago.setPublishableKey(window.MP_PUBLIC_KEY);
+            }
+          } catch (e) {
+            // ignore
+          }
+          resolve(true);
+          return;
+        }
+        waited += interval;
+        if (waited >= timeout) {
+          reject(new Error('Timeout ao aguardar SDK Mercado Pago'));
+          return;
+        }
+        setTimeout(check, interval);
+      };
+
+      check();
+    });
+  }
+
   setupEventListeners() {
     // Validação do formulário em tempo real
     const form = document.getElementById('payment-form');
@@ -149,19 +181,92 @@ class AdvancedPaymentProcessor {
       // Mostrar mensagem de processamento
       this.showNotification('Processando pagamento...', 'info');
 
-      // Enviar para servidor
+      // Preparar expiration month/year esperado pela SDK
+      const expParts = cardExpiration.split('/').map(p => p.trim());
+      let expMonth = expParts[0] || '';
+      let expYear = expParts[1] || '';
+      if (expYear.length === 2) expYear = '20' + expYear;
+
+      // Preencher campos ocultos (adicionados ao form) para a SDK do Mercado Pago
+      const expMonthInput = document.getElementById('card_expiration_month');
+      const expYearInput = document.getElementById('card_expiration_year');
+      if (expMonthInput) expMonthInput.value = expMonth;
+      if (expYearInput) expYearInput.value = expYear;
+
+      // Obter payment_method_id a partir do BIN (6 primeiros dígitos)
+      const bin = cardNumber.replace(/\s/g, '').slice(0, 6);
+      let payment_method_id = null;
+
+      // Garantir que o SDK do Mercado Pago esteja carregado antes de usá-lo
+      try {
+        await this.ensureMercadoPagoLoaded(5000);
+      } catch (err) {
+        console.error('SDK Mercado Pago não carregado:', err);
+        throw new Error('SDK do Mercado Pago não está disponível. Recarregue a página e tente novamente.');
+      }
+
+      const mpGetPaymentMethod = () => new Promise((resolve, reject) => {
+        try {
+          Mercadopago.getPaymentMethod({ 'bin': bin }, function(status, response) {
+            if (status === 200 && response && response.length > 0) {
+              resolve(response[0].id);
+            } else if (response && response[0] && response[0].id) {
+              resolve(response[0].id);
+            } else {
+              resolve(null);
+            }
+          });
+        } catch (err) {
+          resolve(null);
+        }
+      });
+
+      payment_method_id = await mpGetPaymentMethod();
+
+      // Se não detectamos o payment_method_id via SDK, registrar aviso e mostrar a bandeira estimada
+      if (!payment_method_id) {
+        console.warn('mp.getPaymentMethod não retornou payment_method_id para BIN', bin);
+        const estimatedBrand = paymentProcessor.getCardBrand(cardNumber);
+        const brandEl = document.getElementById('card-brand');
+        if (brandEl) brandEl.textContent = estimatedBrand === 'unknown' ? '' : estimatedBrand;
+      } else {
+        const brandEl = document.getElementById('card-brand');
+        if (brandEl) brandEl.textContent = payment_method_id;
+      }
+
+      // Criar token no cliente usando o form (a SDK vai ler inputs por name)
+      const formElement = document.getElementById('payment-form');
+      const mpCreateToken = () => new Promise((resolve, reject) => {
+        try {
+          Mercadopago.createToken(formElement, function(status, resp) {
+            if (status === 200 || status === 201) {
+              resolve(resp.id);
+            } else {
+              reject({ status, resp });
+            }
+          });
+        } catch (err) {
+          reject(err);
+        }
+      });
+
+      let token;
+      try {
+        token = await mpCreateToken();
+      } catch (mpErr) {
+        console.error('Erro ao criar token Mercado Pago:', mpErr);
+        throw new Error('Falha ao tokenizar o cartão. Verifique os dados e tente novamente.');
+      }
+
+      // Enviar token e payment_method_id ao servidor
       const response = await fetch('/api/pagamento-mercado-pago', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          card_number: cardNumber,
-          card_holder: cardHolder,
-          card_expiration_date: cardExpiration,
-          card_cvv: cardCVV,
+          token: token,
+          payment_method_id: payment_method_id,
           amount: this.getOrderTotal(),
           customer_email: email,
-          customer_name: firstName + ' ' + lastName,
-          customer_phone: phone,
           installments: parseInt(installments),
           order_id: 'ORD-' + Date.now()
         })
@@ -174,15 +279,17 @@ class AdvancedPaymentProcessor {
           status: 'sucesso',
           transaction_id: result.transaction_id
         });
-        
+
         this.showNotification('Pagamento aprovado! 🎉', 'success');
-        
+
         // Redirecionar após 2 segundos
         setTimeout(() => {
           window.location = 'thankyou.html?transaction=' + result.transaction_id;
         }, 2000);
       } else {
-        throw new Error(result.error);
+        // Se a API do servidor retornou detalhes, mostre-os para debug
+        const errMsg = result.error || (result.raw && result.raw.cause && result.raw.cause[0] && result.raw.cause[0].description) || 'Erro no pagamento';
+        throw new Error(errMsg);
       }
 
     } catch (error) {
@@ -199,11 +306,35 @@ class AdvancedPaymentProcessor {
 
   // Obter total do pedido
   getOrderTotal() {
-    const totalElement = document.querySelector('.text-black.font-weight-bold strong:last-of-type');
-    if (totalElement) {
-      return parseFloat(totalElement.textContent.replace(/[^0-9.]/g, ''));
+    // Preferir elemento com id `checkout-total`, fallback para selector antigo
+    const totalElById = document.getElementById('checkout-total');
+    let text = null;
+    if (totalElById) {
+      text = totalElById.textContent || totalElById.innerText;
+    } else {
+      const totalElement = document.querySelector('.text-black.font-weight-bold strong:last-of-type');
+      if (totalElement) text = totalElement.textContent || totalElement.innerText;
     }
-    return 0;
+
+    if (!text) return 0;
+
+    // Normalizar formatos: 'R$ 1.234,56' -> 1234.56 ; 'R$ 100.00' -> 100.00
+    // Remover símbolo R$ e espaços
+    let cleaned = text.replace(/\s/g, '').replace('R$', '');
+    // Se houver vírgula como separador decimal (formato BR), trocar por ponto e remover pontos de milhar
+    if (cleaned.indexOf(',') !== -1 && cleaned.indexOf('.') !== -1) {
+      // exemplo: 1.234,56 -> remove pontos e troca vírgula
+      cleaned = cleaned.replace(/\./g, '').replace(',', '.');
+    } else if (cleaned.indexOf(',') !== -1 && cleaned.indexOf('.') === -1) {
+      // exemplo: 1234,56 -> troca vírgula por ponto
+      cleaned = cleaned.replace(',', '.');
+    } else {
+      // manter ponto como decimal
+      cleaned = cleaned.replace(/[^0-9.\-]/g, '');
+    }
+
+    const value = parseFloat(cleaned);
+    return isNaN(value) ? 0 : value;
   }
 
   // Mostrar notificação
