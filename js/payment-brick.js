@@ -1,4 +1,4 @@
-jg/**
+/**
  * Payment Brick Integration for Mercado Pago
  * Handles checkout with Payment Brick (replaces old token-based flow)
  */
