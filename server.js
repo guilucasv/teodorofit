@@ -16,10 +16,10 @@ app.use(express.static('.'));
 // Rota para processar pagamento com Pagar.me
 app.post('/api/pagamento-pagar-me', async (req, res) => {
   try {
-    const { 
-      card_number, 
-      card_holder, 
-      card_expiration_date, 
+    const {
+      card_number,
+      card_holder,
+      card_expiration_date,
       card_cvv,
       amount,
       customer_email,
@@ -81,7 +81,7 @@ app.post('/api/pagamento-pagar-me', async (req, res) => {
 
   } catch (error) {
     console.error('Erro Pagar.me:', error.response?.data || error.message);
-    res.status(500).json({ 
+    res.status(500).json({
       error: 'Erro ao processar pagamento',
       details: error.response?.data?.errors || error.message
     });
@@ -90,54 +90,57 @@ app.post('/api/pagamento-pagar-me', async (req, res) => {
 
 // ============ MERCADO PAGO - PAYMENT BRICK ============
 // Rota para processar pagamento com Payment Brick
+// ============ MERCADO PAGO - PAYMENT BRICK ============
+// Rota para processar pagamento com Payment Brick
 app.post('/api/pagamento-mercado-pago', async (req, res) => {
   try {
-    const {
-      payment_id,
-      order_id,
-      amount,
-      customer_email,
-      customer_name,
-      installments
-    } = req.body;
+    const paymentData = req.body;
 
-    // Validação básica: Payment Brick retorna payment_id, não token
-    if (!payment_id) {
-      return res.status(400).json({ 
-        error: 'É necessário enviar o payment_id gerado pelo Payment Brick' 
-      });
+    console.log('Recebido /api/pagamento-mercado-pago -> req.body:', JSON.stringify(paymentData));
+
+    // Validação básica
+    if (!paymentData.token && !paymentData.payment_method_id) {
+      return res.status(400).json({ error: 'Dados de pagamento incompletos (token ou payment_method_id faltando)' });
     }
 
-    if (!amount || amount <= 0) {
-      return res.status(400).json({ 
-        error: 'O valor da transação é obrigatório e deve ser maior que 0' 
-      });
-    }
+    // Preparar payload para a API do Mercado Pago
+    // https://www.mercadopago.com.br/developers/pt/reference/payments/_payments/post
+    const payload = {
+      token: paymentData.token,
+      issuer_id: paymentData.issuer_id,
+      payment_method_id: paymentData.payment_method_id,
+      transaction_amount: Number(paymentData.transaction_amount),
+      installments: Number(paymentData.installments),
+      description: paymentData.description || 'Produto Teodoro Fitness',
+      payer: paymentData.payer,
+      external_reference: paymentData.external_reference,
+      notification_url: paymentData.notification_url,
+      additional_info: paymentData.additional_info
+    };
 
-    // Log para diagnóstico
-    console.log('Recebido /api/pagamento-mercado-pago (Payment Brick) -> req.body:', JSON.stringify(req.body));
+    console.log('Enviando para Mercado Pago API:', JSON.stringify(payload));
 
-    // Com Payment Brick, o payment_id já foi processado pelo Mercado Pago
-    // Você pode opcionalmente fazer uma busca do payment para confirmar status
-    const paymentResponse = await axios.get(
-      `https://api.mercadopago.com/v1/payments/${payment_id}`,
+    const response = await axios.post(
+      'https://api.mercadopago.com/v1/payments',
+      payload,
       {
         headers: {
           'Authorization': `Bearer ${process.env.MERCADO_PAGO_TOKEN}`,
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'X-Idempotency-Key': `IDEM-${Date.now()}-${Math.random()}`
         }
       }
     );
 
-    console.log('Resposta Mercado Pago (Payment Brick):', JSON.stringify(paymentResponse.data));
+    console.log('Resposta Mercado Pago:', JSON.stringify(response.data));
 
     // Retornar resultado
     res.json({
-      success: paymentResponse.data.status === 'approved',
-      transaction_id: paymentResponse.data.id,
-      status: paymentResponse.data.status,
-      message: paymentResponse.data.status === 'approved' ? 'Pagamento aprovado com sucesso!' : `Pagamento com status: ${paymentResponse.data.status}`,
-      raw: paymentResponse.data
+      success: response.data.status === 'approved',
+      transaction_id: response.data.id,
+      status: response.data.status,
+      message: response.data.status === 'approved' ? 'Pagamento aprovado com sucesso!' : `Pagamento com status: ${response.data.status}`,
+      raw: response.data
     });
 
   } catch (error) {
@@ -145,7 +148,8 @@ app.post('/api/pagamento-mercado-pago', async (req, res) => {
     res.status(error.response?.status || 500).json({
       error: 'Erro ao processar pagamento',
       details: error.response?.data?.message || error.message,
-      status: error.response?.data?.status
+      status: error.response?.data?.status,
+      cause: error.response?.data?.cause
     });
   }
 });
@@ -154,31 +158,31 @@ app.post('/api/pagamento-mercado-pago', async (req, res) => {
 // Webhook para Pagar.me (receber notificações de status)
 app.post('/webhook/pagar-me', (req, res) => {
   const event = req.body;
-  
+
   // Processar evento de pagamento
   if (event.type === 'order.paid' || event.type === 'charge.succeeded') {
     console.log('Pagamento confirmado:', event);
     // Aqui você atualiza o banco de dados
   }
-  
+
   res.json({ received: true });
 });
 
 // Webhook para Mercado Pago
 app.post('/webhook/mercado-pago', (req, res) => {
   const { data, type } = req.query;
-  
+
   if (type === 'payment') {
     console.log('Notificação Mercado Pago:', data);
     // Aqui você busca e atualiza o pagamento
   }
-  
+
   res.json({ received: true });
 });
 
 // ============ ROTAS DE TESTE ============
 app.get('/api/status', (req, res) => {
-  res.json({ 
+  res.json({
     status: 'Servidor rodando',
     timestamp: new Date(),
     pagar_me_configured: !!process.env.PAGAR_ME_API_KEY,

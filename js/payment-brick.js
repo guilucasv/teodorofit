@@ -1,4 +1,4 @@
-/**
+jg/**
  * Payment Brick Integration for Mercado Pago
  * Handles checkout with Payment Brick (replaces old token-based flow)
  */
@@ -38,7 +38,9 @@ class PaymentBrickManager {
         initialization: {
           amount: this.getOrderTotal(),
           payer: {
-            email: this.getCustomerEmail()
+            email: this.getCustomerEmail(),
+            entityType: 'individual',
+            type: 'customer'
           }
         },
         customization: {
@@ -49,6 +51,16 @@ class PaymentBrickManager {
           },
           checkout: {
             theme: 'default'
+          },
+          paymentMethods: {
+            creditCard: 'all',
+            debitCard: 'all',
+            ticket: 'all',
+            bankTransfer: 'all',
+            atm: 'all',
+            onboarding_credits: 'all',
+            wallet_purchase: 'all',
+            maxInstallments: 12
           }
         },
         callbacks: {
@@ -56,8 +68,12 @@ class PaymentBrickManager {
             console.log('✓ Payment Brick pronto');
             this.hideBrickLoader();
           },
-          onSubmit: async (formData) => {
-            console.log('✓ Payment Brick submitted with formData:', formData);
+          onSubmit: async (param) => {
+            // O parâmetro recebido contém { formData }
+            const formData = param.formData;
+            console.log('✓ Payment Brick submitted. Param:', param);
+            console.log('✓ Extracted formData:', formData);
+
             try {
               await this.handlePaymentSubmit(formData);
             } catch (error) {
@@ -76,14 +92,16 @@ class PaymentBrickManager {
       };
 
       // Renderizar Brick no container
-      const brickContainer = document.getElementById('brick-payment-container');
+      const containerId = 'brick-payment-container';
+      const brickContainer = document.getElementById(containerId);
       if (!brickContainer) {
-        throw new Error('Container #brick-payment-container não encontrado no HTML');
+        throw new Error(`Container #${containerId} não encontrado no HTML`);
       }
 
-      this.brickInstance = window.mp.bricks().create('payment', this.brickId, settings);
+      // Store the controller instance (await the promise)
+      this.brickInstance = await window.mp.bricks().create('payment', containerId, settings);
       console.log('✓ Payment Brick renderizado com sucesso');
-      
+
     } catch (error) {
       console.error('Erro ao renderizar Payment Brick:', error);
       this.showNotification(`Erro ao carregar formulário de pagamento: ${error.message}`, 'error');
@@ -100,22 +118,49 @@ class PaymentBrickManager {
       // Mostrar loading
       this.showNotification('Processando pagamento...', 'info');
 
-      // Extrair payment_id do formData
-      const payment_id = data?.id;
-      
-      if (!payment_id) {
-        console.warn('⚠️ Nenhum payment_id no formData. Tentando enviar formData completo.');
+      // Prepare payload for backend
+      const customerName = this.getCustomerName();
+      const customerEmail = this.getCustomerEmail();
+
+      if (!customerName || customerName.trim() === '') {
+        this.showNotification('Por favor, preencha seu Nome e Sobrenome nos detalhes de faturamento.', 'error');
+        throw new Error('Nome do cliente obrigatório');
       }
 
-      console.log('Dados enviados ao backend:', {
-        payment_id: payment_id || data?.id,
-        order_id: `ORD-${Date.now()}`,
-        amount: this.getOrderTotal(),
-        customer_email: this.getCustomerEmail(),
-        customer_name: this.getCustomerName(),
-        installments: data?.installments || 1,
-        formData_keys: Object.keys(data || {})
-      });
+      if (customerEmail === 'customer@example.com' || !customerEmail) {
+        this.showNotification('Por favor, preencha seu Email nos detalhes de faturamento.', 'error');
+        throw new Error('Email do cliente obrigatório');
+      }
+
+      const payload = {
+        ...data,
+        description: `Pedido ${Date.now()}`,
+        external_reference: `ORD-${Date.now()}`,
+        notification_url: 'https://seusite.com/webhook/mercado-pago', // Replace with actual URL if available
+        additional_info: {
+          items: [
+            {
+              id: '123',
+              title: 'Produtos Teodoro Fitness',
+              description: 'Compra no site',
+              picture_url: '',
+              category_id: 'fashion',
+              quantity: 1,
+              unit_price: this.getOrderTotal()
+            }
+          ],
+          payer: {
+            first_name: this.getCustomerName().split(' ')[0],
+            last_name: this.getCustomerName().split(' ').slice(1).join(' '),
+            phone: {
+              area_code: '11', // Should be extracted from phone input
+              number: '999999999' // Should be extracted from phone input
+            }
+          }
+        }
+      };
+
+      console.log('Dados enviados ao backend:', payload);
 
       // Enviar dados para backend
       const response = await fetch('/api/pagamento-mercado-pago', {
@@ -123,14 +168,7 @@ class PaymentBrickManager {
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({
-          payment_id: payment_id || data?.id,
-          order_id: `ORD-${Date.now()}`,
-          amount: this.getOrderTotal(),
-          customer_email: this.getCustomerEmail(),
-          customer_name: this.getCustomerName(),
-          installments: data.installments || 1
-        })
+        body: JSON.stringify(payload)
       });
 
       console.log('📡 Response status:', response.status);
@@ -159,7 +197,7 @@ class PaymentBrickManager {
       if (result.success) {
         console.log('✅ Pagamento aprovado!', result);
         this.showNotification('Pagamento aprovado! 🎉', 'success');
-        
+
         // Redirecionar para página de sucesso após 2 segundos
         setTimeout(() => {
           window.location = `thankyou.html?transaction=${result.transaction_id}`;
@@ -196,7 +234,7 @@ class PaymentBrickManager {
 
     // Parse: 'R$ 1.234,56' -> 1234.56
     let cleaned = text.replace(/\s/g, '').replace('R$', '');
-    
+
     // Handle BR format: 1.234,56
     if (cleaned.indexOf(',') !== -1 && cleaned.indexOf('.') !== -1) {
       cleaned = cleaned.replace(/\./g, '').replace(',', '.');
@@ -216,7 +254,7 @@ class PaymentBrickManager {
    */
   getCustomerEmail() {
     const emailInput = document.getElementById('c_email_address');
-    const email = emailInput ? emailInput.value : 'customer@example.com';
+    const email = (emailInput && emailInput.value) ? emailInput.value : 'customer@example.com';
     console.log('📧 Email:', email);
     return email;
   }
@@ -239,7 +277,7 @@ class PaymentBrickManager {
    */
   showNotification(message, type = 'info') {
     console.log(`[${type.toUpperCase()}] ${message}`);
-    
+
     const notification = document.createElement('div');
     const alertClass = type === 'success' ? 'alert-success' : type === 'error' ? 'alert-danger' : 'alert-info';
     notification.className = `alert ${alertClass} alert-dismissible fade show`;
@@ -253,9 +291,9 @@ class PaymentBrickManager {
     notification.style.right = '20px';
     notification.style.zIndex = '9999';
     notification.style.maxWidth = '500px';
-    
+
     document.body.appendChild(notification);
-    
+
     // Auto-remover após 5 segundos
     setTimeout(() => {
       notification.remove();
@@ -277,13 +315,16 @@ class PaymentBrickManager {
    */
   updateAmount(newAmount) {
     try {
-      if (this.brickInstance && window.mp) {
-      window.mp.bricks().update('payment', this.brickId, {
-        initialization: {
-          amount: newAmount
-        }
-      });
+      if (this.brickInstance) {
+        // Use the controller instance to update
+        this.brickInstance.update({
+          initialization: {
+            amount: newAmount
+          }
+        });
         console.log(`💰 Amount atualizado para: ${newAmount}`);
+      } else {
+        console.warn('⚠️ Brick instance not ready yet');
       }
     } catch (error) {
       console.warn('⚠️ Erro ao atualizar amount:', error.message);
@@ -296,7 +337,7 @@ class PaymentBrickManager {
  */
 document.addEventListener('DOMContentLoaded', () => {
   console.log('=== Inicializando Payment Brick ===');
-  
+
   // Valores do .env (configurados no checkout.html)
   const publicKey = window.MP_PUBLIC_KEY || '';
   const brickId = window.MP_BRICK_ID || '';
@@ -312,14 +353,16 @@ document.addEventListener('DOMContentLoaded', () => {
   // Criar instância do Payment Brick
   window.paymentBrickManager = new PaymentBrickManager(publicKey, brickId);
 
-  // Renderizar Brick no container
-  window.paymentBrickManager.renderBrick();
+  // REMOVIDO: renderBrick() automático. Será chamado pelo checkout.html após renderizar o carrinho.
+  // window.paymentBrickManager.renderBrick();
 
-  // Atualizar amount se carrinho for atualizado
+  // REMOVIDO: Listener duplicado. O checkout.html já chama updateAmount.
+  /*
   window.addEventListener('cartUpdated', () => {
     const newTotal = window.paymentBrickManager.getOrderTotal();
     window.paymentBrickManager.updateAmount(newTotal);
   });
+  */
 
-  console.log('=== Payment Brick inicializado ===');
+  console.log('=== Payment Brick inicializado (aguardando renderização) ===');
 });
