@@ -42,3 +42,11 @@ desktop.ini
 .sass-cache/
 *.tgz
 .parcel-cache/
+
+## Local Data & Debug
+local_emails/
+products.json
+debug_email.js
+diagnose_email.js
+check_payment.js
+test_email_config.js

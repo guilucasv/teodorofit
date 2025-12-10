@@ -37,11 +37,6 @@ class PaymentBrickManager {
       const settings = {
         initialization: {
           amount: this.getOrderTotal(),
-          payer: {
-            email: this.getCustomerEmail(),
-            entityType: 'individual',
-            type: 'customer'
-          }
         },
         customization: {
           visual: {
@@ -134,21 +129,26 @@ class PaymentBrickManager {
 
       const payload = {
         ...data,
+        payer: {
+          ...data.payer,
+          email: customerEmail,
+          first_name: customerName.split(' ')[0],
+          last_name: customerName.split(' ').slice(1).join(' '),
+          phone: this.getCustomerPhone()
+        },
         description: `Pedido ${Date.now()}`,
         external_reference: `ORD-${Date.now()}`,
         notification_url: 'https://seusite.com/webhook/mercado-pago', // Replace with actual URL if available
         additional_info: {
-          items: [
-            {
-              id: '123',
-              title: 'Produtos Teodoro Fitness',
-              description: 'Compra no site',
-              picture_url: '',
-              category_id: 'fashion',
-              quantity: 1,
-              unit_price: this.getOrderTotal()
-            }
-          ],
+          items: cart.getCart().map(item => ({
+            id: item.id,
+            title: item.title,
+            description: item.title,
+            picture_url: item.image || '',
+            category_id: 'fashion',
+            quantity: item.quantity,
+            unit_price: parseFloat(item.price.replace(/[^0-9.]/g, ''))
+          })),
           payer: {
             first_name: this.getCustomerName().split(' ')[0],
             last_name: this.getCustomerName().split(' ').slice(1).join(' '),
@@ -195,8 +195,8 @@ class PaymentBrickManager {
       console.log('✓ Resposta do servidor:', result);
 
       if (result.success) {
-        console.log('✅ Pagamento aprovado!', result);
-        this.showNotification('Pagamento aprovado! 🎉', 'success');
+        console.log('✅ Pagamento processado!', result);
+        this.showNotification('Pedido realizado! Redirecionando...', 'success');
 
         // Redirecionar para página de sucesso após 2 segundos
         setTimeout(() => {
@@ -254,8 +254,12 @@ class PaymentBrickManager {
    */
   getCustomerEmail() {
     const emailInput = document.getElementById('c_email_address');
-    const email = (emailInput && emailInput.value) ? emailInput.value : 'customer@example.com';
-    console.log('📧 Email:', email);
+    if (!emailInput) {
+      console.error('Campo de email (c_email_address) não encontrado!');
+      return '';
+    }
+    const email = emailInput.value;
+    console.log('📧 Email capturado do formulário:', email);
     return email;
   }
 
@@ -270,6 +274,24 @@ class PaymentBrickManager {
     const fullName = `${firstName} ${lastName}`.trim();
     console.log('👤 Nome:', fullName);
     return fullName;
+  }
+
+  /**
+   * Get customer phone from form
+   */
+  getCustomerPhone() {
+    const phoneInput = document.getElementById('c_phone');
+    if (!phoneInput) {
+      return { area_code: '11', number: '999999999' }; // Fallback
+    }
+    const rawPhone = phoneInput.value.replace(/\D/g, '');
+    const areaCode = rawPhone.substring(0, 2) || '11';
+    const number = rawPhone.substring(2) || '999999999';
+
+    return {
+      area_code: areaCode,
+      number: number
+    };
   }
 
   /**
