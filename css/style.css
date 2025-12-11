@@ -459,9 +459,7 @@ a.more {
 }
 
 .we-help-section .imgs-grid {
-	display: -ms-grid;
 	display: grid;
-	-ms-grid-columns: (1fr)[27];
 	grid-template-columns: repeat(27, 1fr);
 	position: relative;
 }
@@ -924,8 +922,6 @@ body {
 	}
 }
 
-position: relative;
-}
 
 .testimonial-slider-wrap .tns-inner {
 	padding-top: 30px;
