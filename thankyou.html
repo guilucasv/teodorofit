@@ -253,6 +253,22 @@
 	<script src="js/bootstrap.bundle.min.js"></script>
 	<script src="js/tiny-slider.js"></script>
 	<script src="js/custom.js"></script>
+	<script src="js/cart.js"></script>
+	<script>
+		// Limpar carrinho ao chegar na página de agradecimento
+		document.addEventListener('DOMContentLoaded', () => {
+			if (typeof cart !== 'undefined') {
+				console.log('🧹 Limpando carrinho após compra...');
+				cart.clearCart();
+			} else {
+				console.warn('⚠️ Objeto cart não encontrado. Limpando localStorage manualmente.');
+				localStorage.removeItem('teodorofit_cart');
+				// Atualizar badge manualmente se necessário
+				const badge = document.getElementById('cart-badge');
+				if (badge) badge.style.display = 'none';
+			}
+		});
+	</script>
 </body>
 
 </html>

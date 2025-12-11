@@ -1,5 +1,6 @@
 <!doctype html>
 <html lang="pt-br">
+
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
@@ -149,7 +150,8 @@
         <img src="images/logo.png" alt="Teodoro Fitness" class="logo-img">
       </a>
 
-      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarsFurni" aria-controls="navbarsFurni" aria-expanded="false" aria-label="Toggle navigation">
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarsFurni"
+        aria-controls="navbarsFurni" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
       </button>
 
@@ -206,7 +208,7 @@
         <div class="col-md-4">
           <div class="summary-box">
             <h3 class="text-black mb-4">Resumo do Carrinho</h3>
-            
+
             <div class="summary-row">
               <span>Subtotal:</span>
               <span id="subtotal">R$ 0,00</span>
@@ -237,7 +239,8 @@
       <div class="row g-5 mb-5">
         <div class="col-lg-4">
           <div class="mb-4 footer-logo-wrap"><a href="#" class="footer-logo">Teodoro Fitness<span>.</span></a></div>
-          <p class="mb-4">Nascida do desejo de empreender, a Teodoro Fitness tem a missão de levar conforto e qualidade premium para todas as mulheres.</p>
+          <p class="mb-4">Nascida do desejo de empreender, a Teodoro Fitness tem a missão de levar conforto e qualidade
+            premium para todas as mulheres.</p>
 
           <ul class="list-unstyled custom-social">
             <li><a href="#"><span class="fa fa-brands fa-facebook-f"></span></a></li>
@@ -274,7 +277,9 @@
       <div class="border-top copyright">
         <div class="row pt-4">
           <div class="col-lg-6">
-            <p class="mb-2 text-center text-lg-start">Copyright &copy;<script>document.write(new Date().getFullYear());</script>. All Rights Reserved. &mdash; Designed with love by <a href="https://github.com/CodeBridge-Solutions">CodeBridge Solutions</a>
+            <p class="mb-2 text-center text-lg-start">Copyright &copy;
+              <script>document.write(new Date().getFullYear());</script>. All Rights Reserved. &mdash; Designed with
+              love by <a href="https://github.com/CodeBridge-Solutions">CodeBridge Solutions</a>
             </p>
           </div>
 
@@ -308,6 +313,7 @@
 
     function renderCart() {
       const cartItems = cart.getCart();
+
       const container = document.getElementById('cart-items-container');
       const emptyMessage = document.getElementById('empty-cart-message');
 
@@ -321,7 +327,7 @@
       container.style.display = 'block';
       emptyMessage.style.display = 'none';
 
-      container.innerHTML = cartItems.map(item => `
+      const html = cartItems.map(item => `
         <div class="cart-item-row">
           <div>
             <img src="${item.image}" alt="${item.title}" class="cart-product-image">
@@ -349,6 +355,8 @@
           </div>
         </div>
       `).join('');
+
+      container.innerHTML = html;
 
       updateCartSummary();
     }

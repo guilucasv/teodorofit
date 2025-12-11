@@ -150,6 +150,15 @@ class ShoppingCart {
 // Inicializar carrinho globalmente
 const cart = new ShoppingCart();
 
+// Sincronizar carrinho entre abas
+window.addEventListener('storage', (event) => {
+  if (event.key === cart.storageKey) {
+    console.log('🔄 Carrinho atualizado em outra aba');
+    cart.cart = cart.loadCart();
+    cart.notifyCartChange();
+  }
+});
+
 // Atualizar ícone ao carregar a página
 document.addEventListener('DOMContentLoaded', () => {
   cart.updateCartIcon();

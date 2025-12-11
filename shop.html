@@ -189,6 +189,7 @@
 					</div>
 				</div>
 
+
 				<!-- Produto 6 -->
 				<div class="col-12 col-md-4 col-lg-3 mb-5">
 					<div class="product-item">
@@ -339,10 +340,10 @@
 
 							if (product.stock === 0) {
 								stockBadge.style.color = '#dc3545'; // Vermelho
-								stockBadge.innerText = ` Esgotado`;
+								stockBadge.innerText = `Esgotado`; // Sem emoji
 
 								if (button) {
-									button.innerText = ' Esgotado';
+									button.innerText = 'Esgotado';
 									button.disabled = true;
 									button.removeAttribute('onclick'); // Remove a função inline
 									button.classList.add('disabled');
@@ -350,12 +351,24 @@
 									button.style.cursor = 'not-allowed';
 									button.style.pointerEvents = 'none'; // Garante que não recebe cliques
 								}
-							} else if (product.stock <= 3) {
-								stockBadge.style.color = '#dc3545'; // Vermelho
-								stockBadge.innerText = `🔥 Restam apenas ${product.stock} unidades!`;
 							} else {
-								stockBadge.style.color = '#28a745'; // Verde
-								stockBadge.innerText = `Em estoque: ${product.stock} unidades`;
+								// ESTOQUE DISPONÍVEL
+								if (button) {
+									button.disabled = false;
+									button.classList.remove('disabled');
+									button.style.opacity = '1';
+									button.style.cursor = 'pointer';
+									button.style.pointerEvents = 'auto';
+									// Nota: O 'onclick' original do HTML deve funcionar se a página foi recarregada.
+								}
+
+								if (product.stock <= 3) {
+									stockBadge.style.color = '#dc3545'; // Vermelho
+									stockBadge.innerText = `🔥 Restam apenas ${product.stock} unidades!`;
+								} else {
+									stockBadge.style.color = '#28a745'; // Verde
+									stockBadge.innerText = `Em estoque: ${product.stock} unidades`;
+								}
 							}
 
 							// Inserir antes do preço

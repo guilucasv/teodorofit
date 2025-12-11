@@ -291,11 +291,30 @@ function updateStock(purchasedItems) {
   }
 }
 
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
+
 const app = express();
+
+// Security Middleware
+// Security Middleware
+app.use(helmet({
+  contentSecurityPolicy: false, // Desativa CSP para permitir scripts inline
+}));
+
+// Rate Limiting (Proteção contra DDoS/Spam)
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutos
+  max: 1000, // AUMENTADO PARA 1000 para evitar bloqueio em testes
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: 'Muitas requisições deste IP, por favor tente novamente mais tarde.'
+});
+app.use('/api/', limiter); // Aplica apenas nas rotas de API
 
 // Middleware
 app.use(express.json());
-app.use(cors());
+app.use(cors()); // Em produção, configure a origin: 'https://seusite.com'
 app.use(express.static('.'));
 
 // ============ PAGAR.ME ============
@@ -405,6 +424,28 @@ function validateStock(items) {
   }
 }
 
+function calculateOrderTotal(items) {
+  try {
+    const productsPath = path.join(__dirname, 'products.json');
+    if (!fs.existsSync(productsPath)) return 0;
+
+    const products = JSON.parse(fs.readFileSync(productsPath, 'utf8'));
+    let total = 0;
+
+    items.forEach(item => {
+      const product = products.find(p => p.id === item.id || p.title === item.title);
+      if (product) {
+        total += product.price * item.quantity;
+      }
+    });
+
+    return total;
+  } catch (error) {
+    console.error('Erro ao calcular total:', error);
+    return 0;
+  }
+}
+
 // ============ MERCADO PAGO - PAYMENT BRICK ============
 // Rota para processar pagamento com Payment Brick
 app.post('/api/pagamento-mercado-pago', async (req, res) => {
@@ -425,6 +466,19 @@ app.post('/api/pagamento-mercado-pago', async (req, res) => {
       });
     }
 
+    // CALCULAR TOTAL NO SERVIDOR (SEGURANÇA CONTRA ADULTERAÇÃO DE PREÇO)
+    const safeTotal = calculateOrderTotal(paymentData.additional_info.items);
+
+    const logMessage = `[${new Date().toISOString()}] 💰 Total calculado no servidor: R$ ${safeTotal} (Cliente enviou: R$ ${paymentData.transaction_amount})\n`;
+    fs.appendFileSync(path.join(__dirname, 'server.log'), logMessage);
+    console.log(logMessage);
+
+    // Sobrescrever o valor enviado pelo frontend com o valor seguro
+    // Se o valor for 0 (erro ou produto não encontrado), bloqueia
+    if (safeTotal <= 0) {
+      return res.status(400).json({ error: 'Erro ao calcular valor do pedido.' });
+    }
+
     // Validação básica
     if (!paymentData.token && !paymentData.payment_method_id) {
       return res.status(400).json({ error: 'Dados de pagamento incompletos (token ou payment_method_id faltando)' });
@@ -436,7 +490,7 @@ app.post('/api/pagamento-mercado-pago', async (req, res) => {
       token: paymentData.token,
       issuer_id: paymentData.issuer_id,
       payment_method_id: paymentData.payment_method_id,
-      transaction_amount: Number(paymentData.transaction_amount),
+      transaction_amount: Number(safeTotal), // USA O VALOR SEGURO
       installments: Number(paymentData.installments),
       description: paymentData.description || 'Produto Teodoro Fitness',
       payer: paymentData.payer,
@@ -566,17 +620,69 @@ app.get('/api/payments/:id', async (req, res) => {
 });
 
 // Buscar lista de produtos com estoque
+// Busca lista de produtos
 app.get('/api/products', (req, res) => {
   try {
     const productsPath = path.join(__dirname, 'products.json');
-    if (!fs.existsSync(productsPath)) {
-      return res.json([]);
-    }
+    if (!fs.existsSync(productsPath)) return res.json([]);
     const products = JSON.parse(fs.readFileSync(productsPath, 'utf8'));
     res.json(products);
   } catch (error) {
-    console.error('Erro ao buscar produtos:', error);
     res.status(500).json({ error: 'Erro ao buscar produtos' });
+  }
+});
+
+// ============ ADMIN ENDPOINTS ============
+
+// Middleware de Autenticação Admin Simplificado
+const authenticateAdmin = (req, res, next) => {
+  const authHeader = req.headers['authorization'];
+  const adminPassword = process.env.ADMIN_PASSWORD;
+
+  // Se não tiver senha configurada no servidor, bloqueia tudo por segurança
+  if (!adminPassword) return res.status(500).json({ error: 'Servidor mal configurado (Sem senha admin)' });
+
+  if (authHeader === `Bearer ${adminPassword}`) {
+    next();
+  } else {
+    res.status(401).json({ error: 'Não autorizado' });
+  }
+};
+
+// Login (Verifica senha)
+app.post('/api/admin/login', (req, res) => {
+  const { password } = req.body;
+  if (password === process.env.ADMIN_PASSWORD) {
+    // Em uma app real, retornaria um JWT. Aqui retornamos a própria senha como token simples.
+    // O front-end vai usar isso no header Authorization.
+    res.json({ success: true, token: password });
+  } else {
+    res.json({ success: false, error: 'Senha incorreta' });
+  }
+});
+
+// Atualizar Estoque (Protegido)
+app.post('/api/admin/stock', authenticateAdmin, (req, res) => {
+  try {
+    const { productId, newStock } = req.body;
+    const productsPath = path.join(__dirname, 'products.json');
+
+    let products = [];
+    if (fs.existsSync(productsPath)) {
+      products = JSON.parse(fs.readFileSync(productsPath, 'utf8'));
+    }
+
+    const productIndex = products.findIndex(p => p.id === productId);
+    if (productIndex === -1) return res.status(404).json({ error: 'Produto não encontrado' });
+
+    products[productIndex].quantity = parseInt(newStock);
+    fs.writeFileSync(productsPath, JSON.stringify(products, null, 2));
+
+    console.log(`📦 Estoque atualizado: ${products[productIndex].title} -> ${newStock}`);
+    res.json({ success: true, product: products[productIndex] });
+  } catch (error) {
+    console.error('Erro ao atualizar estoque:', error);
+    res.status(500).json({ error: 'Erro interno' });
   }
 });
 

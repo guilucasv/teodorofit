@@ -475,26 +475,27 @@
 	<script src="js/cart.js"></script>
 	<script src="js/payment-brick.js?v=5"></script>
 	<script>
+		<script>
 		// Renderizar itens do carrinho no checkout
-		function renderCheckoutItems() {
+			function renderCheckoutItems() {
 			const cartItems = cart.getCart();
 			const container = document.getElementById('checkout-items');
 
 			if (cartItems.length === 0) {
 				container.innerHTML = '<tr><td colspan="2" class="text-center text-muted">Nenhum item no carrinho</td></tr>';
-				document.getElementById('checkout-subtotal').textContent = 'R$ 0,00';
-				document.getElementById('checkout-total').textContent = 'R$ 0,00';
-				return;
+			document.getElementById('checkout-subtotal').textContent = 'R$ 0,00';
+			document.getElementById('checkout-total').textContent = 'R$ 0,00';
+			return;
 			}
 
 			container.innerHTML = cartItems.map(item => {
 				const itemTotal = parseFloat(item.price.replace(/[^0-9.]/g, '')) * item.quantity;
-				return `
-						<tr>
-							<td>${item.title}<strong class="mx-2">x</strong> ${item.quantity}</td>
-							<td>R$ ${itemTotal.toFixed(2).replace('.', ',')}</td>
-						</tr>
-					`;
+			return `
+			<tr>
+				<td>${item.title}<strong class="mx-2">x</strong> ${item.quantity}</td>
+				<td>R$ ${itemTotal.toFixed(2).replace('.', ',')}</td>
+			</tr>
+			`;
 			}).join('');
 
 			const total = cart.getTotal();
