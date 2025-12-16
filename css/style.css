@@ -705,7 +705,7 @@ a.more {
 }
 
 .lundev-slider .btn-cta:hover {
-	background-color: #3b5d50;
+	background-color: #f9bf29;
 	color: #fff;
 	transform: translateY(-3px);
 	box-shadow: 0 5px 15px rgba(59, 93, 80, 0.4);
@@ -1371,4 +1371,67 @@ textarea {
 	height: 50px;
 	border-radius: 50%;
 	background: rgba(59, 93, 80, 0.2);
+}
+
+/* HERO GRID STYLES (Adapted from .we-help-section) */
+.hero .imgs-grid {
+	display: grid;
+	grid-template-columns: repeat(27, 1fr);
+	position: relative;
+	margin-top: 0px;
+	/* Reset margins */
+}
+
+.hero .imgs-grid:before {
+	position: absolute;
+	content: "";
+	width: 255px;
+	height: 217px;
+	background-image: url("../images/dots-light.svg");
+	background-size: contain;
+	background-repeat: no-repeat;
+	right: -80px;
+	top: -60px;
+	z-index: 0;
+}
+
+.hero .imgs-grid .grid {
+	position: relative;
+	z-index: 2;
+}
+
+.hero .imgs-grid .grid img {
+	border-radius: 20px;
+	max-width: 100%;
+	box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5);
+	transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.hero .imgs-grid .grid img:hover {
+	transform: scale(1.05);
+	box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+	z-index: 10;
+	position: relative;
+}
+
+.hero .imgs-grid .grid.grid-1 {
+	grid-column: 1 / span 18;
+	grid-row: 1 / span 27;
+}
+
+.hero .imgs-grid .grid.grid-2 {
+	grid-column: 16 / span 8;
+	grid-row: 2 / span 9;
+	/* Ends at 11 */
+	padding-left: 0;
+	z-index: 2;
+}
+
+.hero .imgs-grid .grid.grid-3 {
+	grid-column: 19 / span 8;
+	/* Start at 19 (Gap from 18) */
+	grid-row: 9 / span 9;
+	/* Start at 9 (Overlaps 11) */
+	padding-top: 0;
+	z-index: 3;
 }

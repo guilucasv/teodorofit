@@ -1,0 +1,83 @@
+[
+  {
+    "id": "ORD-1765913987135",
+    "date": "2025-12-16T19:39:47.136Z",
+    "customer": {
+      "name": "Lucas Vieira",
+      "email": "guivlucasilva@gmail.com",
+      "phone": "(62) 995663568"
+    },
+    "items": [
+      {
+        "id": "produto-4",
+        "title": "Conjunto Gray Moon",
+        "description": "Conjunto Gray Moon",
+        "picture_url": "images/product-3.png",
+        "category_id": "fashion",
+        "quantity": 2,
+        "unit_price": 43
+      }
+    ],
+    "total": 86,
+    "status": "approved",
+    "payment_method": "mercadopago",
+    "transaction_id": 1343214935
+  },
+  {
+    "id": "ORD-1765913923692",
+    "date": "2025-12-16T19:38:43.693Z",
+    "customer": {
+      "name": "Lucas Vieira",
+      "email": "guivlucasilva@gmail.com",
+      "phone": "(62) 995663568"
+    },
+    "items": [
+      {
+        "id": "produto-3",
+        "title": "Conjunto Red Moon",
+        "description": "Conjunto Red Moon",
+        "picture_url": "images/product-2.png",
+        "category_id": "fashion",
+        "quantity": 1,
+        "unit_price": 78
+      }
+    ],
+    "total": 78,
+    "status": "approved",
+    "payment_method": "mercadopago",
+    "transaction_id": 1343214907
+  },
+  {
+    "id": "ORD-1765757168814",
+    "date": "2025-12-15T00:06:08.815Z",
+    "customer": {
+      "name": "Lucas Vieira",
+      "email": "guivlucasilva@gmail.com",
+      "phone": "(62) 995663568"
+    },
+    "items": [
+      {
+        "id": "produto-2",
+        "title": "Conjunto Green Moon",
+        "description": "Conjunto Green Moon",
+        "picture_url": "images/product-1.png",
+        "category_id": "fashion",
+        "quantity": 3,
+        "unit_price": 50
+      },
+      {
+        "id": "produto-3",
+        "title": "Conjunto Red Moon",
+        "description": "Conjunto Red Moon",
+        "picture_url": "images/product-2.png",
+        "category_id": "fashion",
+        "quantity": 2,
+        "unit_price": 78
+      }
+    ],
+    "total": 306,
+    "status": "approved",
+    "payment_method": "mercadopago",
+    "transaction_id": 1325657858
+  }
+]

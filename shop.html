@@ -117,274 +117,115 @@
 
 	<div class="untree_co-section product-section before-footer-section">
 		<div class="container">
-			<div class="row">
+			<!-- Filtros / Ordenação (Opcional, futuro) -->
 
-				<!-- Produto 1 -->
-				<div class="col-12 col-md-4 col-lg-3 mb-5">
-					<div class="product-item">
-						<img src="images/product-3.png" class="img-fluid product-thumbnail" alt="Conjunto Blue Moon">
-						<h3 class="product-title">Conjunto Blue Moon</h3>
-						<strong class="product-price">R$ 50.00</strong>
-
-						<button class="btn btn-black btn-sm w-100"
-							onclick="addToCart('produto-1', 'Conjunto Blue Moon', 'R$ 50.00', 'images/product-3.png')">
-							<i class="fa fa-shopping-cart"></i> Carrinho
-						</button>
-					</div>
+			<!-- Grid de Produtos Dinâmico -->
+			<div class="row" id="shop-products-container">
+				<div class="col-12 text-center">
+					<p>Carregando catálogo...</p>
 				</div>
-
-				<!-- Produto 2 -->
-				<div class="col-12 col-md-4 col-lg-3 mb-5">
-					<div class="product-item">
-						<img src="images/product-1.png" class="img-fluid product-thumbnail" alt="Conjunto Green Moon">
-						<h3 class="product-title">Conjunto Green Moon</h3>
-						<strong class="product-price">R$ 50.00</strong>
-
-						<button class="btn btn-black btn-sm w-100"
-							onclick="addToCart('produto-2', 'Conjunto Green Moon', 'R$ 50.00', 'images/product-1.png')">
-							<i class="fa fa-shopping-cart"></i> Carrinho
-						</button>
-					</div>
-				</div>
-
-				<!-- Produto 3 -->
-				<div class="col-12 col-md-4 col-lg-3 mb-5">
-					<div class="product-item">
-						<img src="images/product-2.png" class="img-fluid product-thumbnail" alt="Conjunto Red Moon">
-						<h3 class="product-title">Conjunto Red Moon</h3>
-						<strong class="product-price">R$ 78.00</strong>
-
-						<button class="btn btn-black btn-sm w-100"
-							onclick="addToCart('produto-3', 'Conjunto Red Moon', 'R$ 78.00', 'images/product-2.png')">
-							<i class="fa fa-shopping-cart"></i> Carrinho
-						</button>
-					</div>
-				</div>
-
-				<!-- Produto 4 -->
-				<div class="col-12 col-md-4 col-lg-3 mb-5">
-					<div class="product-item">
-						<img src="images/product-3.png" class="img-fluid product-thumbnail" alt="Conjunto Gray Moon">
-						<h3 class="product-title">Conjunto Gray Moon</h3>
-						<strong class="product-price">R$ 43.00</strong>
-
-						<button class="btn btn-black btn-sm w-100"
-							onclick="addToCart('produto-4', 'Conjunto Gray Moon', 'R$ 43.00', 'images/product-3.png')">
-							<i class="fa fa-shopping-cart"></i> Carrinho
-						</button>
-					</div>
-				</div>
-
-				<!-- Produto 5 -->
-				<div class="col-12 col-md-4 col-lg-3 mb-5">
-					<div class="product-item">
-						<img src="images/product-3.png" class="img-fluid product-thumbnail" alt="Conjunto Green">
-						<h3 class="product-title">Conjunto Green</h3>
-						<strong class="product-price">R$ 55.00</strong>
-
-						<button class="btn btn-black btn-sm w-100"
-							onclick="addToCart('produto-5', 'Conjunto Green', 'R$ 55.00', 'images/product-3.png')">
-							<i class="fa fa-shopping-cart"></i> Carrinho
-						</button>
-					</div>
-				</div>
-
-
-				<!-- Produto 6 -->
-				<div class="col-12 col-md-4 col-lg-3 mb-5">
-					<div class="product-item">
-						<img src="images/product-1.png" class="img-fluid product-thumbnail" alt="Conjunto Premium">
-						<h3 class="product-title">Conjunto Premium</h3>
-						<strong class="product-price">R$ 75.00</strong>
-
-						<button class="btn btn-black btn-sm w-100"
-							onclick="addToCart('produto-6', 'Conjunto Premium', 'R$ 75.00', 'images/product-1.png')">
-							<i class="fa fa-shopping-cart"></i> Carrinho
-						</button>
-					</div>
-				</div>
-
-				<!-- Produto 7 -->
-				<div class="col-12 col-md-4 col-lg-3 mb-5">
-					<div class="product-item">
-						<img src="images/product-2.png" class="img-fluid product-thumbnail" alt="Conjunto Ultra">
-						<h3 class="product-title">Conjunto Ultra</h3>
-						<strong class="product-price">R$ 85.00</strong>
-
-						<button class="btn btn-black btn-sm w-100"
-							onclick="addToCart('produto-7', 'Conjunto Ultra', 'R$ 85.00', 'images/product-2.png')">
-							<i class="fa fa-shopping-cart"></i> Carrinho
-						</button>
-					</div>
-				</div>
-
-				<!-- Produto 8 -->
-				<div class="col-12 col-md-4 col-lg-3 mb-5">
-					<div class="product-item">
-						<img src="images/product-3.png" class="img-fluid product-thumbnail" alt="Conjunto Elegance">
-						<h3 class="product-title">Conjunto Elegance</h3>
-						<strong class="product-price">R$ 60.00</strong>
-
-						<button class="btn btn-black btn-sm w-100"
-							onclick="addToCart('produto-8', 'Conjunto Elegance', 'R$ 60.00', 'images/product-3.png')">
-							<i class="fa fa-shopping-cart"></i> Carrinho
-						</button>
-					</div>
-				</div>
-
 			</div>
 		</div>
 	</div>
 
-	<!-- Start Footer Section -->
-	<footer class="footer-section">
-		<div class="container relative">
+	<script>
+		document.addEventListener('DOMContentLoaded', () => {
+			fetch('/api/products')
+				.then(res => res.json())
+				.then(products => {
+					const container = document.getElementById('shop-products-container');
 
-			<div class="row g-5 mb-5">
-				<div class="col-lg-4">
-					<div class="mb-4 footer-logo-wrap"><a href="#" class="footer-logo">Teodoro Fitness<span>.</span></a>
-					</div>
-					<p class="mb-4">Nascida do desejo de empreender, a Teodoro Fitness tem a missão de levar conforto e
-						qualidade premium para todas as mulheres. Criamos roupas fitness que abraçam o corpo, oferecendo
-						a sustentação e a modelagem que inspiram confiança. Nossas peças contam com alta tecnologia e
-						design exclusivo, garantindo performance e estilo em cada treino.</p>
+					if (products.length === 0) {
+						container.innerHTML = '<div class="col-12 text-center"><h3>Nenhum produto disponível no momento.</h3></div>';
+						return;
+					}
 
-					<ul class="list-unstyled custom-social">
-						<li><a href="#"><span class="fa fa-brands fa-facebook-f"></span></a></li>
-						<li><a href="#"><span class="fa fa-brands fa-instagram"></span></a></li>
-						<li>
-							<a href="https://wa.me/5562982187692" target="_blank" rel="noopener noreferrer">
-								<span class="fa fa-brands fa-whatsapp"></span>
-							</a>
-						</li>
-					</ul>
-				</div>
+					container.innerHTML = products.map(p => {
+						const priceFormatted = parseFloat(p.price).toFixed(2);
+						// Verifica estoque
+						const qty = parseInt(p.quantity) || 0;
+						const isOutOfStock = qty <= 0;
+						let stockLabel = '';
 
-				<div class="col-lg-8">
-					<div class="row links-wrap">
-						<div class="col-6 col-sm-6 col-md-3">
-							<ul class="list-unstyled">
-								<li><a href="index.html">Sobre Nós</a></li>
-								<li><a href="shop.html">Produtos</a></li>
-								<li><a href="contact.html">Contatos</a></li>
-							</ul>
-						</div>
+						const unitLabel = qty === 1 ? 'unidade' : 'unidades';
 
-						<div class="col-6 col-sm-6 col-md-3">
-							<ul class="list-unstyled">
-								<li><a href="#">Suporte</a></li>
-								<li><a href="#">Nosso Time</a></li>
-								<li><a href="#">Política de Privacidade</a></li>
-							</ul>
-						</div>
-					</div>
-				</div>
-			</div>
+						if (isOutOfStock) {
+							stockLabel = '<span class="badge bg-danger mb-2">Esgotado</span>';
+						} else if (qty <= 5) {
+							stockLabel = `<span class="badge bg-warning text-dark mb-2">🔥 Restam apenas ${qty} ${unitLabel}!</span>`;
+						} else {
+							stockLabel = `<span class="badge bg-success mb-2">Em estoque: ${qty} ${unitLabel}</span>`;
+						}
 
-			<div class="border-top copyright">
-				<div class="row pt-4">
-					<div class="col-lg-6">
-						<p class="mb-2 text-center text-lg-start">Copyright &copy;
-							<script>document.write(new Date().getFullYear());</script>. All Rights Reserved. &mdash;
-							Designed with love by <a href="https://github.com/CodeBridge-Solutions">CodeBridge
-								Solutions</a>
-						</p>
-					</div>
+						const btnDisabled = isOutOfStock ? 'disabled style="opacity:0.5; cursor:not-allowed;"' : '';
+						const btnText = isOutOfStock ? 'Indisponível' : '<i class="fa fa-shopping-cart"></i> Carrinho';
 
-					<div class="col-lg-6 text-center text-lg-end">
-						<ul class="list-unstyled d-inline-flex ms-auto">
-							<li class="me-4"><a href="#">Termos & Condições</a></li>
-							<li><a href="#">Política de Privacidade</a></li>
-						</ul>
-					</div>
-				</div>
-			</div>
-		</div>
-	</footer>
-	<!-- End Footer Section -->
+						// Using data attributes instead of inline onclick to prevent quote escaping issues
+						const dataAttrs = isOutOfStock ? '' : `
+                            data-id="${p.id}" 
+                            data-title="${p.title}" 
+                            data-price="R$ ${priceFormatted}" 
+                            data-image="${p.image}"
+                            class="btn btn-black btn-sm w-100 js-add-to-cart"
+                        `;
+
+						// If out of stock, use standard class
+						const btnClass = isOutOfStock ? 'class="btn btn-black btn-sm w-100"' : '';
+
+						return `
+                        <div class="col-12 col-md-4 col-lg-3 mb-5">
+                            <div class="product-item">
+                                <img src="${p.image}" class="img-fluid product-thumbnail" alt="${p.title}">
+                                <h3 class="product-title">${p.title}</h3>
+                                ${stockLabel}
+                                <strong class="product-price">R$ ${priceFormatted}</strong>
+                                
+                                <p style="font-size:12px; color:#666; margin-bottom:10px;">
+                                    ${p.description || ''}
+                                </p>
+
+                                <button ${isOutOfStock ? btnClass : dataAttrs} ${btnDisabled}>
+                                    ${btnText}
+                                </button>
+                            </div>
+                        </div>
+                        `;
+					}).join('');
+				})
+				.catch(err => {
+					console.error(err);
+					document.getElementById('shop-products-container').innerHTML = '<div class="col-12 text-center text-danger">Erro ao carregar produtos.</div>';
+				});
+		});
+
+
+		// Event Delegation for Dynamic Cart Buttons
+		document.addEventListener('click', function (e) {
+			const button = e.target.closest('.js-add-to-cart');
+
+			if (button) {
+				e.preventDefault();
+				const id = button.dataset.id;
+				const title = button.dataset.title;
+				const price = button.dataset.price;
+				const image = button.dataset.image;
+
+				console.log('Button Clicked:', { id, title, price });
+
+				if (typeof addToCart === 'function') {
+					addToCart(id, title, price, image);
+				} else {
+					console.error('addToCart function missing!');
+					alert('Erro interno: função de carrinho não encontrada.');
+				}
+			}
+		});
+	</script>
 
 	<script src="js/bootstrap.bundle.min.js"></script>
 	<script src="js/tiny-slider.js"></script>
 	<script src="js/custom.js"></script>
 	<script src="js/cart.js"></script>
-
-	<script>
-		document.addEventListener('DOMContentLoaded', async () => {
-			try {
-				const response = await fetch('/api/products');
-				const products = await response.json();
-
-				// Mapear produtos por título para facilitar a busca
-				const productMap = {};
-				products.forEach(p => {
-					productMap[p.title] = p;
-				});
-
-				// Encontrar todos os elementos de produto na página
-				const productItems = document.querySelectorAll('.product-item');
-
-				productItems.forEach(item => {
-					const titleElement = item.querySelector('.product-title');
-					if (titleElement) {
-						const title = titleElement.innerText.trim();
-						const product = productMap[title];
-
-						if (product) {
-							// Criar elemento de estoque
-							const stockBadge = document.createElement('div');
-							stockBadge.style.marginBottom = '10px';
-							stockBadge.style.fontSize = '14px';
-							stockBadge.style.fontWeight = 'bold';
-
-							const button = item.querySelector('button');
-
-							if (product.stock === 0) {
-								stockBadge.style.color = '#dc3545'; // Vermelho
-								stockBadge.innerText = `Esgotado`; // Sem emoji
-
-								if (button) {
-									button.innerText = 'Esgotado';
-									button.disabled = true;
-									button.removeAttribute('onclick'); // Remove a função inline
-									button.classList.add('disabled');
-									button.style.opacity = '0.6';
-									button.style.cursor = 'not-allowed';
-									button.style.pointerEvents = 'none'; // Garante que não recebe cliques
-								}
-							} else {
-								// ESTOQUE DISPONÍVEL
-								if (button) {
-									button.disabled = false;
-									button.classList.remove('disabled');
-									button.style.opacity = '1';
-									button.style.cursor = 'pointer';
-									button.style.pointerEvents = 'auto';
-									// Nota: O 'onclick' original do HTML deve funcionar se a página foi recarregada.
-								}
-
-								if (product.stock <= 3) {
-									stockBadge.style.color = '#dc3545'; // Vermelho
-									stockBadge.innerText = `🔥 Restam apenas ${product.stock} unidades!`;
-								} else {
-									stockBadge.style.color = '#28a745'; // Verde
-									stockBadge.innerText = `Em estoque: ${product.stock} unidades`;
-								}
-							}
-
-							// Inserir antes do preço
-							const priceElement = item.querySelector('.product-price');
-							if (priceElement) {
-								priceElement.parentNode.insertBefore(stockBadge, priceElement);
-							}
-						}
-					}
-				});
-
-			} catch (error) {
-				console.error('Erro ao carregar estoque:', error);
-			}
-		});
-	</script>
 </body>
 
 </html>

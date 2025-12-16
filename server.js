@@ -261,16 +261,24 @@ function updateStock(purchasedItems) {
 
       if (productIndex !== -1) {
         const product = products[productIndex];
-        // Decrementar estoque
-        product.stock -= item.quantity;
-        if (product.stock < 0) product.stock = 0; // Evitar negativo
 
-        console.log(`📉 Estoque atualizado: ${product.title} -> ${product.stock}`);
+        // CORREÇÃO: Usar 'quantity' em vez de 'stock' para atualizar
+        const currentQty = product.quantity !== undefined ? product.quantity : (product.stock || 0);
+        const newStock = Math.max(0, currentQty - item.quantity);
+
+        products[productIndex].quantity = newStock;
+        // Mantém sync se existir o campo antigo
+        if (product.stock !== undefined) products[productIndex].stock = newStock;
+
         stockUpdated = true;
+        console.log(`📉 Estoque baixado: ${product.title} (${currentQty} -> ${newStock})`);
 
         // Verificar nível baixo
-        if (product.stock <= product.low_stock_threshold) {
-          lowStockItems.push(product);
+        if (newStock <= (product.low_stock_threshold || 5)) {
+          lowStockItems.push({
+            ...product,
+            stock: newStock // Para o email usar o valor certo
+          });
         }
       } else {
         console.warn(`Produto não encontrado no estoque: ${item.title} (ID: ${item.id})`);
@@ -404,10 +412,13 @@ function validateStock(items) {
     items.forEach(item => {
       const product = products.find(p => p.id === item.id || p.title === item.title);
       if (product) {
-        if (product.stock < item.quantity) {
+        // CORREÇÃO: Usar 'quantity' em vez de 'stock' para validar
+        const availableStock = product.quantity !== undefined ? product.quantity : (product.stock || 0);
+
+        if (availableStock < item.quantity) {
           unavailable.push({
             title: product.title,
-            available: product.stock,
+            available: availableStock,
             requested: item.quantity
           });
         }
@@ -541,6 +552,22 @@ app.post('/api/pagamento-mercado-pago', async (req, res) => {
 
       // Atualizar estoque
       updateStock(paymentData.additional_info.items);
+
+      // SALVAR PEDIDO NO BANCO DE DADOS
+      saveOrder({
+        id: `ORD-${Date.now()}`,
+        customer: {
+          name: `${paymentData.payer.first_name} ${paymentData.payer.last_name}`,
+          email: recipientEmail,
+          phone: `(${paymentData.payer.phone.area_code}) ${paymentData.payer.phone.number}`
+        },
+        items: paymentData.additional_info.items,
+        total: response.data.transaction_amount,
+        status: response.data.status,
+        payment_method: 'mercadopago',
+        transaction_id: response.data.id
+      });
+
     } else {
       console.log('⚠️ Email não enviado pois status não é de sucesso.');
     }
@@ -639,8 +666,8 @@ const authenticateAdmin = (req, res, next) => {
   const authHeader = req.headers['authorization'];
   const adminPassword = process.env.ADMIN_PASSWORD;
 
-  // Se não tiver senha configurada no servidor, bloqueia tudo por segurança
-  if (!adminPassword) return res.status(500).json({ error: 'Servidor mal configurado (Sem senha admin)' });
+  // Se não tiver senha configurada no servidor, bloqueia tudo
+  if (!adminPassword) return res.status(500).json({ error: 'Servidor mal configurado' });
 
   if (authHeader === `Bearer ${adminPassword}`) {
     next();
@@ -649,15 +676,90 @@ const authenticateAdmin = (req, res, next) => {
   }
 };
 
-// Login (Verifica senha)
+// Criar novo produto (Admin)
+app.post('/api/products', authenticateAdmin, (req, res) => {
+  try {
+    const { title, price, image, description, quantity } = req.body;
+
+    // Basic validation
+    if (!title || !price) {
+      return res.status(400).json({ success: false, error: 'Dados incompletos' });
+    }
+
+    const productsPath = path.join(__dirname, 'products.json');
+    let products = [];
+    if (fs.existsSync(productsPath)) {
+      products = JSON.parse(fs.readFileSync(productsPath, 'utf8'));
+    }
+
+    const newProduct = {
+      id: Date.now().toString(),
+      title,
+      price: parseFloat(price),
+      image: image || 'images/product-1.png',
+      description: description || '',
+      quantity: parseInt(quantity) || 0,
+      stock: parseInt(quantity) || 0
+    };
+
+    products.push(newProduct);
+    fs.writeFileSync(productsPath, JSON.stringify(products, null, 2));
+
+    res.json({ success: true, product: newProduct });
+  } catch (error) {
+    console.error('Erro ao criar produto:', error);
+    res.status(500).json({ success: false, error: 'Erro ao salvar produto' });
+  }
+});
+
+// Deletar produto (Admin)
+app.delete('/api/products/:id', authenticateAdmin, (req, res) => {
+  try {
+    const { id } = req.params;
+    const productsPath = path.join(__dirname, 'products.json');
+
+    if (fs.existsSync(productsPath)) {
+      let products = JSON.parse(fs.readFileSync(productsPath, 'utf8'));
+      const initialLength = products.length;
+      products = products.filter(p => p.id !== id);
+
+      if (products.length === initialLength) {
+        return res.status(404).json({ success: false, error: 'Produto não encontrado' });
+      }
+
+      fs.writeFileSync(productsPath, JSON.stringify(products, null, 2));
+      res.json({ success: true, message: 'Produto removido' });
+    } else {
+      res.status(404).json({ success: false, error: 'Banco de dados não encontrado' });
+    }
+  } catch (error) {
+    console.error('Erro ao deletar produto:', error);
+    res.status(500).json({ success: false, error: 'Erro ao deletar produto' });
+  }
+});
+
+// Login (Verifica login e senha)
 app.post('/api/admin/login', (req, res) => {
-  const { password } = req.body;
-  if (password === process.env.ADMIN_PASSWORD) {
-    // Em uma app real, retornaria um JWT. Aqui retornamos a própria senha como token simples.
-    // O front-end vai usar isso no header Authorization.
+  const { login, password } = req.body;
+
+  // Verifica se as variáveis de ambiente estão configuradas
+  const envLogin = process.env.ADMIN_LOGIN || 'admin'; // Fallback para 'admin' se não configurado
+  const envPass = process.env.ADMIN_PASSWORD;
+
+  console.log(`🔍 Tentativa de Login:`);
+  console.log(`   - Recebido: Login="${login}", Pass="${password}"`);
+  console.log(`   - Esperado: Login="${envLogin}", Pass="${envPass}"`);
+  console.log(`   - Length Pass: Recebido=${password?.length}, Esperado=${envPass?.length}`);
+
+  if (!envPass) {
+    return res.status(500).json({ success: false, error: 'Servidor sem senha configurada' });
+  }
+
+  if (login === envLogin && password === envPass) {
+    // Retorna token simples
     res.json({ success: true, token: password });
   } else {
-    res.json({ success: false, error: 'Senha incorreta' });
+    res.json({ success: false, error: 'Credenciais inválidas' });
   }
 });
 
@@ -683,6 +785,55 @@ app.post('/api/admin/stock', authenticateAdmin, (req, res) => {
   } catch (error) {
     console.error('Erro ao atualizar estoque:', error);
     res.status(500).json({ error: 'Erro interno' });
+  }
+});
+
+
+
+// ============ GESTÃO DE PEDIDOS ============
+
+// Função auxiliar para salvar pedido
+function saveOrder(orderData) {
+  try {
+    const ordersPath = path.join(__dirname, 'orders.json');
+    let orders = [];
+
+    if (fs.existsSync(ordersPath)) {
+      orders = JSON.parse(fs.readFileSync(ordersPath, 'utf8'));
+    }
+
+    const newOrder = {
+      id: orderData.id || `ORD-${Date.now()}`,
+      date: new Date().toISOString(),
+      customer: orderData.customer, // { name, email, phone }
+      items: orderData.items,
+      total: orderData.total,
+      status: orderData.status || 'pending', // pending, approved, shipped, etc.
+      payment_method: orderData.payment_method,
+      transaction_id: orderData.transaction_id
+    };
+
+    orders.unshift(newOrder); // Adiciona no início (mais recente primeiro)
+    fs.writeFileSync(ordersPath, JSON.stringify(orders, null, 2));
+    console.log(`📦 Pedido salvo: ${newOrder.id}`);
+    return newOrder;
+  } catch (error) {
+    console.error('Erro ao salvar pedido:', error);
+    return null;
+  }
+}
+
+// Endpoint para listar pedidos (Admin)
+app.get('/api/admin/orders', authenticateAdmin, (req, res) => {
+  try {
+    const ordersPath = path.join(__dirname, 'orders.json');
+    if (!fs.existsSync(ordersPath)) return res.json([]);
+
+    const orders = JSON.parse(fs.readFileSync(ordersPath, 'utf8'));
+    res.json(orders);
+  } catch (error) {
+    console.error('Erro ao buscar pedidos:', error);
+    res.status(500).json({ error: 'Erro ao buscar pedidos' });
   }
 });
 

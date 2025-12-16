@@ -178,7 +178,16 @@ class PaymentBrickManager {
       if (!response.ok) {
         const errorText = await response.text();
         console.error('✗ Erro HTTP:', response.status, errorText);
-        throw new Error(`Erro ${response.status}: ${errorText || 'Sem resposta do servidor'}`);
+
+        // Tentar fazer parse para ver se é erro de estoque
+        try {
+          const errObj = JSON.parse(errorText);
+          // Lança o objeto stringificado para ser tratado no catch externo
+          throw new Error(JSON.stringify(errObj));
+        } catch (e) {
+          // Se não for JSON, lança texto normal
+          throw new Error(errorText || `Erro ${response.status}`);
+        }
       }
 
       // Tentar fazer parse de JSON
@@ -211,7 +220,26 @@ class PaymentBrickManager {
 
     } catch (error) {
       console.error('✗ Erro ao processar pagamento:', error);
-      this.showNotification(`Erro: ${error.message}`, 'error');
+
+      // Tenta extrair mensagem amigável do JSON de erro se disponível
+      let msg = error.message;
+      try {
+        // Se a mensagem for um JSON stringificado (como acontece em alguns throws acima)
+        if (msg.startsWith('{')) {
+          const errorObj = JSON.parse(msg);
+          if (errorObj.error === 'Estoque insuficiente' && errorObj.message) {
+            msg = `⚠️ ${errorObj.message}`;
+          } else {
+            msg = errorObj.message || errorObj.error || msg;
+          }
+        }
+      } catch (e) {
+        // falha no parse, usa mensagem original
+      }
+
+      this.showNotification(msg, 'error');
+
+      // Re-throw para parar processamento se necessário (mas o catch do brick já captura)
       throw error;
     }
   }

@@ -168,6 +168,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Adicionar produto ao carrinho (chamada do HTML)
 function addToCart(productId, title, price, image) {
+  console.log(`🛒 Tentando adicionar: ${title} (${productId}) - Preço: ${price}`);
+
   cart.addProduct({
     id: productId,
     title: title,
@@ -181,9 +183,10 @@ function addToCart(productId, title, price, image) {
 }
 
 // Mostrar notificação
-function showCartNotification(message) {
+function showCartNotification(message, type = 'success') {
   const notification = document.createElement('div');
-  notification.className = 'alert alert-success alert-dismissible fade show';
+  const bgClass = type === 'error' ? 'alert-danger' : 'alert-success';
+  notification.className = `alert ${bgClass} alert-dismissible fade show`;
   notification.role = 'alert';
   notification.innerHTML = `
     ${message}
@@ -200,10 +203,10 @@ function showCartNotification(message) {
 
   document.body.appendChild(notification);
 
-  // Remove após 3 segundos
+  // Remove após 4 segundos
   setTimeout(() => {
     notification.remove();
-  }, 3000);
+  }, 4000);
 }
 
 // Adicionar estilos para animação
