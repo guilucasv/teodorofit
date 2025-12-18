@@ -159,3 +159,72 @@
 	initLundevSlider();
 
 })()
+
+	/* New Menu JS */
+	(function () {
+		const buttons = document.querySelectorAll(".menu__item");
+		let activeButton = document.querySelector(".menu__item.active");
+
+		function updateLineWidth() {
+			buttons.forEach(item => {
+				const text = item.querySelector(".menu__text");
+				if (text) setLineWidth(text, item);
+			});
+		}
+
+		window.addEventListener("resize", updateLineWidth);
+		// Run once on load
+		setTimeout(updateLineWidth, 100);
+
+		buttons.forEach(item => {
+			const text = item.querySelector(".menu__text");
+			if (!text) return;
+
+			// Initialize
+			setLineWidth(text, item);
+
+			item.addEventListener("click", function () {
+				if (this.classList.contains("active")) return;
+
+				this.classList.add("active");
+
+				if (activeButton) {
+					activeButton.classList.remove("active");
+					let activeText = activeButton.querySelector(".menu__text");
+					if (activeText) activeText.classList.remove("active");
+				}
+
+				// Activate text with a slight delay to allow flex-grow to start,
+				// or use transitionEnd. We'll use a timeout as fallback.
+				handleTransition(this, text);
+				activeButton = this;
+			});
+		});
+
+		function setLineWidth(text, item) {
+			if (text && item) {
+				const lineWidth = text.offsetWidth + "px";
+				item.style.setProperty("--lineWidth", lineWidth);
+			}
+		}
+
+		function handleTransition(item, text) {
+			let transitionFinished = false;
+			const onTransitionEnd = (e) => {
+				if (e.propertyName !== "flex-grow" || !item.classList.contains("active")) return;
+				transitionFinished = true;
+				text.classList.add("active");
+				item.removeEventListener("transitionend", onTransitionEnd);
+			};
+
+			item.addEventListener("transitionend", onTransitionEnd);
+
+			// Fallback in case transitionEnd doesn't fire (e.g. if tab invalid or styles overridden)
+			setTimeout(() => {
+				if (!transitionFinished && item.classList.contains("active")) {
+					text.classList.add("active");
+					item.removeEventListener("transitionend", onTransitionEnd);
+				}
+			}, 500); // slightly longer than .45s
+		}
+	})();

@@ -122,43 +122,73 @@
 			const transactionId = urlParams.get('transaction');
 
 			if (transactionId) {
-				try {
-					// Buscar detalhes do pagamento
-					const response = await fetch(`/api/payments/${transactionId}`);
-					const payment = await response.json();
+				const pixContainer = document.getElementById('pix-container');
+				let isPolling = true;
 
-					console.log('Detalhes do pagamento:', payment);
+				// Função para verificar status
+				async function checkStatus() {
+					if (!isPolling) return;
 
-					// Verificar se é Pix e está pendente
-					if (payment.payment_method_id === 'pix' && (payment.status === 'pending' || payment.status === 'in_process')) {
-						const pixData = payment.point_of_interaction?.transaction_data;
+					try {
+						// Buscar detalhes do pagamento
+						const response = await fetch(`/api/payments/${transactionId}`);
+						const payment = await response.json();
 
-						if (pixData) {
-							// Mostrar container do Pix
-							document.getElementById('pix-container').style.display = 'block';
+						console.log('Status do pagamento:', payment.status);
 
-							// Atualizar QR Code (imagem base64)
-							document.getElementById('pix-qr-image').src = `data:image/png;base64,${pixData.qr_code_base64}`;
+						if (payment.status === 'approved') {
+							isPolling = false;
+							// Atualizar UI para Sucesso
+							pixContainer.style.display = 'none';
 
-							// Atualizar Copia e Cola
-							document.getElementById('pix-copypaste').value = pixData.qr_code;
+							const title = document.getElementById('status-title');
+							const message = document.getElementById('status-message');
+							const icon = document.querySelector('.thankyou-icon');
 
-							// Configurar botão de copiar
-							document.getElementById('btn-copy-pix').addEventListener('click', () => {
-								const copyText = document.getElementById('pix-copypaste');
-								copyText.select();
-								document.execCommand('copy');
-								alert('Código Pix copiado!');
-							});
+							if (title) title.innerText = 'Pagamento Aprovado!';
+							if (message) message.innerHTML = 'Recebemos seu pagamento. Seu pedido está sendo preparado para envio.<br>Um email de confirmação foi enviado.';
+							if (icon) icon.innerHTML = '<i class="fas fa-check-circle text-success display-3"></i>';
 
-							// Atualizar textos
-							document.getElementById('status-title').innerText = 'Pagamento Pix Gerado';
-							document.getElementById('status-message').innerText = 'Realize o pagamento para finalizar seu pedido.';
+							return;
 						}
+
+						// Se ainda pendente e for Pix, garante que mostra o QR code
+						if (payment.payment_method_id === 'pix' && (payment.status === 'pending' || payment.status === 'in_process')) {
+							const pixData = payment.point_of_interaction?.transaction_data;
+
+							if (pixData && pixContainer.style.display === 'none') {
+								// Mostrar container do Pix
+								pixContainer.style.display = 'block';
+
+								// Atualizar QR Code (imagem base64)
+								document.getElementById('pix-qr-image').src = `data:image/png;base64,${pixData.qr_code_base64}`;
+
+								// Atualizar Copia e Cola
+								document.getElementById('pix-copypaste').value = pixData.qr_code;
+
+								// Configurar botão de copiar
+								document.getElementById('btn-copy-pix').onclick = () => {
+									const copyText = document.getElementById('pix-copypaste');
+									copyText.select();
+									document.execCommand('copy');
+									alert('Código Pix copiado!');
+								};
+
+								// Atualizar textos
+								document.getElementById('status-title').innerText = 'Aguardando Pagamento';
+								document.getElementById('status-message').innerText = 'Realize o pagamento via Pix para finalizar seu pedido.';
+							}
+						}
+					} catch (error) {
+						console.error('Erro ao verificar status:', error);
 					}
-				} catch (error) {
-					console.error('Erro ao carregar Pix:', error);
+
+					// Agendar próxima verificação em 3 segundos
+					if (isPolling) setTimeout(checkStatus, 3000);
 				}
+
+				// Iniciar verificação
+				checkStatus();
 			}
 		});
 	</script>

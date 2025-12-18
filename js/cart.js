@@ -167,15 +167,15 @@ document.addEventListener('DOMContentLoaded', () => {
 // ============ FUNÇÕES AUXILIARES ============
 
 // Adicionar produto ao carrinho (chamada do HTML)
-function addToCart(productId, title, price, image) {
-  console.log(`🛒 Tentando adicionar: ${title} (${productId}) - Preço: ${price}`);
+function addToCart(productId, title, price, image, quantity = 1) {
+  console.log(`🛒 Tentando adicionar: ${title} (${productId}) - Preço: ${price} - Qtd: ${quantity}`);
 
   cart.addProduct({
     id: productId,
     title: title,
     price: price,
     image: image,
-    quantity: 1
+    quantity: quantity
   });
 
   // Mostrar mensagem de sucesso

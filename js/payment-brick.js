@@ -155,7 +155,8 @@ class PaymentBrickManager {
             phone: {
               area_code: '11', // Should be extracted from phone input
               number: '999999999' // Should be extracted from phone input
-            }
+            },
+            address: this.getCustomerAddress() // Add address here
           }
         }
       };
@@ -305,6 +306,24 @@ class PaymentBrickManager {
   }
 
   /**
+   * Get customer address from form
+   */
+  getCustomerAddress() {
+    const street = document.getElementById('c_address')?.value || '';
+    const zip = document.getElementById('c_postal_zip')?.value || '';
+    const state = document.getElementById('c_country')?.value || '';
+    const city = document.getElementById('c_city')?.value || '';
+    // Neighborhood isn't in form, mapped to empty
+
+    return {
+      zip_code: zip,
+      street_name: street,
+      city: city,
+      federal_unit: state
+    };
+  }
+
+  /**
    * Get customer phone from form
    */
   getCustomerPhone() {
@@ -385,34 +404,6 @@ class PaymentBrickManager {
 /**
  * Initialize Payment Brick when DOM is ready
  */
-document.addEventListener('DOMContentLoaded', () => {
-  console.log('=== Inicializando Payment Brick ===');
-
-  // Valores do .env (configurados no checkout.html)
-  const publicKey = window.MP_PUBLIC_KEY || '';
-  const brickId = window.MP_BRICK_ID || '';
-
-  console.log('🔑 Public Key:', publicKey ? '✓ Definida' : '✗ Não definida');
-  console.log('🧱 Brick ID:', brickId ? '✓ Definida' : '✗ Não definida');
-
-  if (!publicKey || !brickId) {
-    console.error('✗ PUBLIC_KEY ou BRICK_ID não definidos. Verifique o arquivo de configuração.');
-    return;
-  }
-
-  // Criar instância do Payment Brick
-  window.paymentBrickManager = new PaymentBrickManager(publicKey, brickId);
-
-  // REMOVIDO: renderBrick() automático. Será chamado pelo checkout.html após renderizar o carrinho.
-  // window.paymentBrickManager.renderBrick();
-
-  // REMOVIDO: Listener duplicado. O checkout.html já chama updateAmount.
-  /*
-  window.addEventListener('cartUpdated', () => {
-    const newTotal = window.paymentBrickManager.getOrderTotal();
-    window.paymentBrickManager.updateAmount(newTotal);
-  });
-  */
-
-  console.log('=== Payment Brick inicializado (aguardando renderização) ===');
-});
+// Export/Expose class globally
+window.PaymentBrickManager = PaymentBrickManager;
+console.log('✓ Classe PaymentBrickManager carregada');

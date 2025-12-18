@@ -1,5 +1,287 @@
 [
   {
+    "id": "PED-1766087146910-9939",
+    "date": "2025-12-18T19:45:48.070Z",
+    "customer": {
+      "name": "Lucas Vieira",
+      "email": "guivlucasilva@gmail.com",
+      "phone": "(62) 995663568",
+      "address": {
+        "zip_code": "74440480",
+        "street_name": "Rua 603 Qd.560 Lt.4A",
+        "city": "Goiânia",
+        "federal_unit": "GO"
+      }
+    },
+    "items": [
+      {
+        "id": "1765939529749",
+        "title": "Conjunto Teodoro (Legging+Top) Preto",
+        "description": "Conjunto Teodoro (Legging+Top) Preto",
+        "picture_url": "images/conjunto2.2.png",
+        "category_id": "fashion",
+        "quantity": 3,
+        "unit_price": 179.9
+      }
+    ],
+    "total": 539.7,
+    "status": "approved",
+    "payment_method": "mercadopago",
+    "transaction_id": 1343253703
+  },
+  {
+    "id": "PED-1766086898712-5821",
+    "date": "2025-12-18T19:41:39.744Z",
+    "customer": {
+      "name": "Lucas Vieira",
+      "email": "guivlucasilva@gmail.com",
+      "phone": "(62) 995663568",
+      "address": {
+        "zip_code": "74440480",
+        "street_name": "Rua 603",
+        "city": "Goiânia",
+        "federal_unit": "GO"
+      }
+    },
+    "items": [
+      {
+        "id": "1765941164405",
+        "title": "Conjunto Teodoro (Legging+Top) Branco",
+        "description": "Conjunto Teodoro (Legging+Top) Branco",
+        "picture_url": "images/conjunto1.1.png",
+        "category_id": "fashion",
+        "quantity": 1,
+        "unit_price": 179.9
+      },
+      {
+        "id": "1765941766108",
+        "title": "Conjunto Teodoro (Legging+Top) Beringela",
+        "description": "Conjunto Teodoro (Legging+Top) Beringela",
+        "picture_url": "images/conjunto8.png",
+        "category_id": "fashion",
+        "quantity": 2,
+        "unit_price": 179.9
+      }
+    ],
+    "total": 539.7,
+    "status": "approved",
+    "payment_method": "mercadopago",
+    "transaction_id": 1343253623
+  },
+  {
+    "id": "PED-1766086449889-7599",
+    "date": "2025-12-18T19:34:11.128Z",
+    "customer": {
+      "name": "Lucas Vieira",
+      "email": "guivlucasilva@gmail.com",
+      "phone": "(62) 995663568",
+      "address": {
+        "zip_code": "74440480",
+        "street_name": "Rua 603",
+        "city": "Goiânia",
+        "federal_unit": "GO"
+      }
+    },
+    "items": [
+      {
+        "id": "1765941164405",
+        "title": "Conjunto Teodoro (Legging+Top) Branco",
+        "description": "Conjunto Teodoro (Legging+Top) Branco",
+        "picture_url": "images/conjunto1.1.png",
+        "category_id": "fashion",
+        "quantity": 1,
+        "unit_price": 179.9
+      },
+      {
+        "id": "1765941766108",
+        "title": "Conjunto Teodoro (Legging+Top) Beringela",
+        "description": "Conjunto Teodoro (Legging+Top) Beringela",
+        "picture_url": "images/conjunto8.png",
+        "category_id": "fashion",
+        "quantity": 1,
+        "unit_price": 179.9
+      }
+    ],
+    "total": 359.8,
+    "status": "pending",
+    "payment_method": "mercadopago",
+    "transaction_id": 1343253507
+  },
+  {
+    "id": "PED-1766080921133-9372",
+    "date": "2025-12-18T18:02:02.579Z",
+    "customer": {
+      "name": "Lucas Vieira",
+      "email": "guivlucasilva@gmail.com",
+      "phone": "(62) 995663568",
+      "address": {
+        "zip_code": "74440480",
+        "street_name": "Rua 603",
+        "city": "Goiânia",
+        "federal_unit": "GO"
+      }
+    },
+    "items": [
+      {
+        "id": "1765939529749",
+        "title": "Conjunto Teodoro (Legging+Top) Preto",
+        "description": "Conjunto Teodoro (Legging+Top) Preto",
+        "picture_url": "images/conjunto2.2.png",
+        "category_id": "fashion",
+        "quantity": 1,
+        "unit_price": 179.9
+      },
+      {
+        "id": "1765941164405",
+        "title": "Conjunto Teodoro (Legging+Top) Branco",
+        "description": "Conjunto Teodoro (Legging+Top) Branco",
+        "picture_url": "images/conjunto1.1.png",
+        "category_id": "fashion",
+        "quantity": 1,
+        "unit_price": 179.9
+      },
+      {
+        "id": "1765941766108",
+        "title": "Conjunto Teodoro (Legging+Top) Beringela",
+        "description": "Conjunto Teodoro (Legging+Top) Beringela",
+        "picture_url": "images/conjunto8.png",
+        "category_id": "fashion",
+        "quantity": 1,
+        "unit_price": 179.9
+      }
+    ],
+    "total": 539.7,
+    "status": "approved",
+    "payment_method": "mercadopago",
+    "transaction_id": 1343256097
+  },
+  {
+    "id": "PED-1766078360512-6896",
+    "date": "2025-12-18T17:19:22.085Z",
+    "customer": {
+      "name": "Lucas Vieira",
+      "email": "guivlucasilva@gmail.com",
+      "phone": "(62) 995663568",
+      "address": {
+        "zip_code": "74440480",
+        "street_name": "Rua 603",
+        "city": "Goiânia",
+        "federal_unit": "GO"
+      }
+    },
+    "items": [
+      {
+        "id": "1765941164405",
+        "title": "Conjunto Teodoro (Legging+Top) Branco",
+        "description": "Conjunto Teodoro (Legging+Top) Branco",
+        "picture_url": "images/conjunto1.1.png",
+        "category_id": "fashion",
+        "quantity": 1,
+        "unit_price": 179.9
+      }
+    ],
+    "total": 179.9,
+    "status": "approved",
+    "payment_method": "mercadopago",
+    "transaction_id": 1325686518
+  },
+  {
+    "id": "PED-1766031011558-9144",
+    "date": "2025-12-18T04:10:13.112Z",
+    "customer": {
+      "name": "Lucas Vieira",
+      "email": "guivlucasilva@gmail.com",
+      "phone": "(62) 995663568",
+      "address": {
+        "zip_code": "74440480",
+        "street_name": "Rua 603",
+        "city": "Goiânia",
+        "federal_unit": "GO"
+      }
+    },
+    "items": [
+      {
+        "id": "1765941164405",
+        "title": "Conjunto Teodoro (Legging+Top) Branco",
+        "description": "Conjunto Teodoro (Legging+Top) Branco",
+        "picture_url": "images/conjunto1.1.png",
+        "category_id": "fashion",
+        "quantity": 1,
+        "unit_price": 179.9
+      }
+    ],
+    "total": 179.9,
+    "status": "approved",
+    "payment_method": "mercadopago",
+    "transaction_id": 1325682368
+  },
+  {
+    "id": "ORD-1765941895687",
+    "date": "2025-12-17T03:24:55.688Z",
+    "customer": {
+      "name": "Lucas Vieira",
+      "email": "guivlucasilva@gmail.com",
+      "phone": "(62) 995663568"
+    },
+    "items": [
+      {
+        "id": "1765941766108",
+        "title": "Conjunto Teodoro (Legging+Top) Beringela",
+        "description": "Conjunto Teodoro (Legging+Top) Beringela",
+        "picture_url": "images/conjunto8.png",
+        "category_id": "fashion",
+        "quantity": 2,
+        "unit_price": 179.9
+      },
+      {
+        "id": "1765941164405",
+        "title": "Conjunto Teodoro (Legging+Top) Branco",
+        "description": "Conjunto Teodoro (Legging+Top) Branco",
+        "picture_url": "images/conjunto1.1.png",
+        "category_id": "fashion",
+        "quantity": 1,
+        "unit_price": 179.9
+      }
+    ],
+    "total": 539.7,
+    "status": "approved",
+    "payment_method": "mercadopago",
+    "transaction_id": 1325674734
+  },
+  {
+    "id": "ORD-1765941274152",
+    "date": "2025-12-17T03:14:34.153Z",
+    "customer": {
+      "name": "Lucas Vieira",
+      "email": "guivlucasilva@gmail.com",
+      "phone": "(62) 995663568"
+    },
+    "items": [
+      {
+        "id": "1765941164405",
+        "title": "Conjunto Teodoro (Legging+Top) Branco",
+        "description": "Conjunto Teodoro (Legging+Top) Branco",
+        "picture_url": "images/conjunto1.1.png",
+        "category_id": "fashion",
+        "quantity": 1,
+        "unit_price": 179.9
+      },
+      {
+        "id": "1765939529749",
+        "title": "Conjunto Teodoro (Legging+Top) Preto",
+        "description": "Conjunto Teodoro (Legging+Top) Preto",
+        "picture_url": "images/conjunto2.2.png",
+        "category_id": "fashion",
+        "quantity": 2,
+        "unit_price": 179.9
+      }
+    ],
+    "total": 539.7,
+    "status": "approved",
+    "payment_method": "mercadopago",
+    "transaction_id": 1343220369
+  },
+  {
     "id": "ORD-1765913987135",
     "date": "2025-12-16T19:39:47.136Z",
     "customer": {

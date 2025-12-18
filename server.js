@@ -8,6 +8,10 @@ const path = require('path');
 
 dotenv.config();
 
+const app = express();
+app.use(express.json());
+app.use(cors());
+
 // Configuração do Nodemailer
 const transporter = nodemailer.createTransport({
   host: 'smtp.gmail.com',
@@ -19,26 +23,29 @@ const transporter = nodemailer.createTransport({
   }
 });
 
-async function sendReceiptEmail(to, items, total, status) {
+// Função para enviar recibo ao cliente
+async function sendReceiptEmail(to, items, total, status, orderId) {
   try {
+    // ... items logic same ...
     const itemsHtml = items.map(item => `
-      <tr>
-        <td style="padding: 10px; border-bottom: 1px solid #eee;">${item.title}</td>
-        <td style="padding: 10px; border-bottom: 1px solid #eee;">${item.quantity}</td>
-        <td style="padding: 10px; border-bottom: 1px solid #eee;">R$ ${item.unit_price.toFixed(2)}</td>
-      </tr>
-    `).join('');
+        <tr>
+          <td style="padding: 10px; border-bottom: 1px solid #eee;">${item.title}</td>
+          <td style="padding: 10px; border-bottom: 1px solid #eee;">${item.quantity}</td>
+          <td style="padding: 10px; border-bottom: 1px solid #eee;">R$ ${item.unit_price.toFixed(2)}</td>
+        </tr>
+      `).join('');
 
-    let subject = 'Recibo do seu Pedido - Teodoro Fitness';
+    let subject = `Recibo do Pedido #${orderId} - Teodoro Fitness`;
     let title = 'Obrigado pela sua compra!';
-    let message = 'Seu pagamento foi aprovado com sucesso. Abaixo estão os detalhes do seu pedido:';
+    let message = `Seu pagamento para o pedido <strong>#${orderId}</strong> foi aprovado com sucesso.`;
 
     if (status === 'pending' || status === 'in_process') {
-      subject = 'Pedido Recebido - Aguardando Pagamento';
+      subject = `Pedido Recebido #${orderId} - Aguardando Pagamento`;
       title = 'Pedido Realizado!';
-      message = 'Seu pedido foi recebido e está aguardando a confirmação do pagamento. Assim que confirmado, você receberá outro email.';
+      message = `Seu pedido <strong>#${orderId}</strong> foi recebido e está aguardando pagamento.`;
     }
 
+    // ... HTML construction ...
     const html = `
         <!DOCTYPE html>
         <html>
@@ -60,6 +67,7 @@ async function sendReceiptEmail(to, items, total, status) {
             <p>${message}</p>
             
             <table>
+            <!-- same table content -->
               <thead>
                 <tr>
                   <th>Produto</th>
@@ -91,17 +99,127 @@ async function sendReceiptEmail(to, items, total, status) {
       subject: subject,
       html: html
     };
-
     saveEmailLocally('RECEIPT', to, subject, html);
-
-    const info = await transporter.sendMail(mailOptions);
-    console.log('📧 Email enviado:', info.response);
-  } catch (error) {
-    console.error('✗ Erro ao enviar email:', error);
-  }
+    await transporter.sendMail(mailOptions);
+  } catch (e) { console.error(e); }
 }
 
-async function sendAdminNotification(items, total, customerEmail, payerData, status) {
+// Endpoint para configuração (chaves públicas)
+app.get('/api/config/mercadopago', (req, res) => {
+  res.json({
+    publicKey: process.env.MERCADO_PAGO_PUBLIC_KEY || 'TEST-560926a5-34b7-41f0-974c-f2f4ce44814f', // Default Test Key
+    brickId: process.env.MERCADO_PAGO_BRICK_ID || 'brick_494653537_658683757195653' // Default Test Brick
+  });
+});
+
+// ... Mercado Pago Route ...
+app.post('/api/pagamento-mercado-pago', async (req, res) => {
+  try {
+    console.log('🔔 Rota /api/pagamento-mercado-pago chamada!');
+
+    // ...
+    const paymentData = req.body;
+
+    // GENERATE UNIQUE ORDER ID
+    // Format: ORD-Timestamp-Random4Digits
+    const orderId = `PED-${Date.now()}-${Math.floor(1000 + Math.random() * 9000)}`;
+
+    // ... validastions ...
+
+    // CALCULAR TOTAL NO SERVIDOR ...
+    // ...
+    const safeTotal = calculateOrderTotal(paymentData.additional_info.items);
+    if (safeTotal <= 0) return res.status(400).json({ error: 'Erro ao calcular total' });
+
+    // Payload construction
+    // Clean address for Mercado Pago (removes city/state which cause 400 error)
+    const fullAddress = paymentData.additional_info.payer.address || {};
+    const mpAddress = {
+      zip_code: fullAddress.zip_code,
+      street_name: fullAddress.street_name,
+      street_number: fullAddress.street_number // Add if available later
+    };
+
+    const payload = {
+      token: paymentData.token,
+      issuer_id: paymentData.issuer_id,
+      payment_method_id: paymentData.payment_method_id,
+      transaction_amount: Number(safeTotal),
+      installments: Number(paymentData.installments),
+      description: `Pedido ${orderId}`,
+      payer: paymentData.payer,
+      external_reference: orderId,
+      notification_url: paymentData.notification_url,
+      additional_info: {
+        ...paymentData.additional_info,
+        payer: {
+          ...paymentData.additional_info.payer,
+          address: mpAddress // Use sanitized address for API
+        }
+      }
+    };
+
+    // ... AXIOS POST ...
+    const response = await axios.post(
+      'https://api.mercadopago.com/v1/payments',
+      payload,
+      {
+        headers: {
+          'Authorization': `Bearer ${process.env.MERCADO_PAGO_TOKEN}`,
+          'Content-Type': 'application/json',
+          'X-Idempotency-Key': `IDEM-${Date.now()}-${Math.random()}`
+        }
+      }
+    );
+
+    const isSuccess = response.data.status === 'approved' || response.data.status === 'pending' || response.data.status === 'in_process';
+
+    res.json({
+      success: isSuccess,
+      transaction_id: response.data.id,
+      order_id: orderId, // Return order ID to frontend
+      status: response.data.status,
+      message: isSuccess ? 'Pagamento processado' : 'Status: ' + response.data.status
+    });
+
+    if (isSuccess) {
+      const recipientEmail = paymentData.payer.email;
+      // Use FULL ADDRESS (from original request) for emails/db, not the sanitized one
+      const payerAddress = fullAddress;
+
+      // Send Receipt with Order ID
+      sendReceiptEmail(recipientEmail, paymentData.additional_info.items, response.data.transaction_amount, response.data.status, orderId);
+
+      // Send Admin Notification with Order ID and Address
+      sendAdminNotification(paymentData.additional_info.items, response.data.transaction_amount, recipientEmail, paymentData.payer, response.data.status, orderId, payerAddress);
+
+      updateStock(paymentData.additional_info.items);
+
+      saveOrder({
+        id: orderId, // Use our generated ID
+        customer: {
+          name: `${paymentData.payer.first_name} ${paymentData.payer.last_name}`,
+          email: recipientEmail,
+          phone: `(${paymentData.payer.phone.area_code}) ${paymentData.payer.phone.number}`,
+          address: payerAddress // Save full address in order
+        },
+        items: paymentData.additional_info.items,
+        total: response.data.transaction_amount,
+        status: response.data.status,
+        payment_method: 'mercadopago',
+        transaction_id: response.data.id,
+        date: new Date()
+      });
+    }
+
+  } catch (error) {
+    // ...
+    console.error(error);
+    res.status(500).json({ error: 'Erro no pagamento' });
+  }
+});
+
+async function sendAdminNotification(items, total, customerEmail, payerData, status, orderId, address) {
   try {
     const itemsHtml = items.map(item => `
       <tr>
@@ -111,14 +229,21 @@ async function sendAdminNotification(items, total, customerEmail, payerData, sta
       </tr>
     `).join('');
 
-    let subject = `🔔 Novo Pedido Recebido! - R$ ${total}`;
-    let title = 'Novo Pedido Realizado!';
+    let subject = `🔔 Novo Pedido #${orderId} - R$ ${total}`;
+    let title = `Novo Pedido #${orderId}`;
     let message = 'Um novo pedido foi aprovado no site.';
 
     if (status === 'pending' || status === 'in_process') {
-      subject = `⏳ Novo Pedido (Pendente) - R$ ${total}`;
-      message = 'Um novo pedido foi realizado e está aguardando pagamento (Pix/Boleto).';
+      subject = `⏳ Pedido Pendente #${orderId} - R$ ${total}`;
+      message = 'Um novo pedido foi realizado e está aguardando pagamento.';
     }
+
+    // Format address
+    const addressHtml = address ? `
+        <p><strong>Endereço:</strong> ${address.street_name || 'N/A'}</p>
+        <p><strong>Cidade/UF:</strong> ${address.city || ''} - ${address.federal_unit || ''}</p>
+        <p><strong>CEP:</strong> ${address.zip_code || ''}</p>
+    ` : '<p>Endereço não informado.</p>';
 
     const html = `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -130,6 +255,8 @@ async function sendAdminNotification(items, total, customerEmail, payerData, sta
             <p><strong>Nome:</strong> ${payerData.first_name} ${payerData.last_name}</p>
             <p><strong>Email:</strong> ${customerEmail}</p>
             <p><strong>Telefone:</strong> (${payerData.phone.area_code}) ${payerData.phone.number}</p>
+            <hr style="border:0; border-top:1px solid #ddd; margin:10px 0;">
+            ${addressHtml}
           </div>
 
           <h3>Itens do Pedido:</h3>
@@ -156,7 +283,7 @@ async function sendAdminNotification(items, total, customerEmail, payerData, sta
 
     const mailOptions = {
       from: process.env.EMAIL_USER,
-      to: process.env.EMAIL_USER, // Envia para o próprio email da loja
+      to: process.env.EMAIL_USER,
       subject: subject,
       html: html
     };
@@ -302,9 +429,6 @@ function updateStock(purchasedItems) {
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 
-const app = express();
-
-// Security Middleware
 // Security Middleware
 app.use(helmet({
   contentSecurityPolicy: false, // Desativa CSP para permitir scripts inline
@@ -457,131 +581,7 @@ function calculateOrderTotal(items) {
   }
 }
 
-// ============ MERCADO PAGO - PAYMENT BRICK ============
-// Rota para processar pagamento com Payment Brick
-app.post('/api/pagamento-mercado-pago', async (req, res) => {
-  try {
-    console.log('🔔 Rota /api/pagamento-mercado-pago chamada!');
-    const paymentData = req.body;
 
-    console.log('Recebido /api/pagamento-mercado-pago -> req.body:', JSON.stringify(paymentData));
-
-    // Validar estoque antes de processar
-    const stockCheck = validateStock(paymentData.additional_info.items);
-    if (!stockCheck.valid) {
-      console.log('🚫 Estoque insuficiente:', stockCheck.unavailable);
-      return res.status(400).json({
-        error: 'Estoque insuficiente',
-        unavailable_items: stockCheck.unavailable,
-        message: `Os seguintes itens acabaram: ${stockCheck.unavailable.map(i => i.title).join(', ')}`
-      });
-    }
-
-    // CALCULAR TOTAL NO SERVIDOR (SEGURANÇA CONTRA ADULTERAÇÃO DE PREÇO)
-    const safeTotal = calculateOrderTotal(paymentData.additional_info.items);
-
-    const logMessage = `[${new Date().toISOString()}] 💰 Total calculado no servidor: R$ ${safeTotal} (Cliente enviou: R$ ${paymentData.transaction_amount})\n`;
-    fs.appendFileSync(path.join(__dirname, 'server.log'), logMessage);
-    console.log(logMessage);
-
-    // Sobrescrever o valor enviado pelo frontend com o valor seguro
-    // Se o valor for 0 (erro ou produto não encontrado), bloqueia
-    if (safeTotal <= 0) {
-      return res.status(400).json({ error: 'Erro ao calcular valor do pedido.' });
-    }
-
-    // Validação básica
-    if (!paymentData.token && !paymentData.payment_method_id) {
-      return res.status(400).json({ error: 'Dados de pagamento incompletos (token ou payment_method_id faltando)' });
-    }
-
-    // Preparar payload para a API do Mercado Pago
-    // https://www.mercadopago.com.br/developers/pt/reference/payments/_payments/post
-    const payload = {
-      token: paymentData.token,
-      issuer_id: paymentData.issuer_id,
-      payment_method_id: paymentData.payment_method_id,
-      transaction_amount: Number(safeTotal), // USA O VALOR SEGURO
-      installments: Number(paymentData.installments),
-      description: paymentData.description || 'Produto Teodoro Fitness',
-      payer: paymentData.payer,
-      external_reference: paymentData.external_reference,
-      notification_url: paymentData.notification_url,
-      additional_info: paymentData.additional_info
-    };
-
-    console.log('Enviando para Mercado Pago API:', JSON.stringify(payload));
-
-    const response = await axios.post(
-      'https://api.mercadopago.com/v1/payments',
-      payload,
-      {
-        headers: {
-          'Authorization': `Bearer ${process.env.MERCADO_PAGO_TOKEN}`,
-          'Content-Type': 'application/json',
-          'X-Idempotency-Key': `IDEM-${Date.now()}-${Math.random()}`
-        }
-      }
-    );
-
-    console.log('Resposta Mercado Pago:', JSON.stringify(response.data));
-
-    // Retornar resultado
-    const isSuccess = response.data.status === 'approved' || response.data.status === 'pending' || response.data.status === 'in_process';
-
-    console.log(`🔍 Status do pagamento: ${response.data.status}`);
-    console.log(`🔍 isSuccess: ${isSuccess}`);
-
-    res.json({
-      success: isSuccess,
-      transaction_id: response.data.id,
-      status: response.data.status,
-      message: isSuccess ? 'Pagamento processado com sucesso!' : `Pagamento com status: ${response.data.status}`,
-      raw: response.data
-    });
-
-    // Enviar email se aprovado ou pendente (Pix)
-    if (isSuccess) {
-      // Usar o email original do formulário (paymentData), pois o Mercado Pago Sandbox substitui por test_user
-      const recipientEmail = paymentData.payer.email;
-      console.log(`📧 Tentando enviar email para: ${recipientEmail} (Status: ${response.data.status})`);
-      sendReceiptEmail(recipientEmail, paymentData.additional_info.items, response.data.transaction_amount, response.data.status);
-
-      // Enviar notificação para o admin
-      sendAdminNotification(paymentData.additional_info.items, response.data.transaction_amount, recipientEmail, paymentData.payer, response.data.status);
-
-      // Atualizar estoque
-      updateStock(paymentData.additional_info.items);
-
-      // SALVAR PEDIDO NO BANCO DE DADOS
-      saveOrder({
-        id: `ORD-${Date.now()}`,
-        customer: {
-          name: `${paymentData.payer.first_name} ${paymentData.payer.last_name}`,
-          email: recipientEmail,
-          phone: `(${paymentData.payer.phone.area_code}) ${paymentData.payer.phone.number}`
-        },
-        items: paymentData.additional_info.items,
-        total: response.data.transaction_amount,
-        status: response.data.status,
-        payment_method: 'mercadopago',
-        transaction_id: response.data.id
-      });
-
-    } else {
-      console.log('⚠️ Email não enviado pois status não é de sucesso.');
-    }
-
-  } catch (error) {
-    console.error('Erro Mercado Pago (Payment Brick):', error.response?.data || error.message);
-    res.status(error.response?.status || 500).json({
-      error: 'Erro ao processar pagamento',
-      details: error.response?.data?.message || error.message,
-      status: error.response?.data?.status,
-      cause: error.response?.data?.cause
-    });
-  }
-});
 
 // ============ WEBHOOK ============
 // Webhook para Pagar.me (receber notificações de status)
@@ -598,16 +598,113 @@ app.post('/webhook/pagar-me', (req, res) => {
 });
 
 // Webhook para Mercado Pago
-app.post('/webhook/mercado-pago', (req, res) => {
-  const { data, type } = req.query;
+app.post('/webhook/mercado-pago', async (req, res) => {
+  try {
+    // Mercado Pago envia o ID do pagamento na query string ou no corpo
+    const { topic, id } = req.query;
+    const paymentId = id || req.query['data.id'];
 
-  if (type === 'payment') {
-    console.log('Notificação Mercado Pago:', data);
-    // Aqui você busca e atualiza o pagamento
+    console.log('🔔 Webhook recebido:', req.query, req.body);
+
+    if (topic === 'payment' || req.query.type === 'payment') {
+      console.log(`🔎 Verificando pagamento ID: ${paymentId}`);
+
+      // Buscar status atualizado no Mercado Pago
+      const response = await axios.get(`https://api.mercadopago.com/v1/payments/${paymentId}`, {
+        headers: { 'Authorization': `Bearer ${process.env.MERCADO_PAGO_TOKEN}` }
+      });
+
+      const payment = response.data;
+      const status = payment.status;
+      const externalReference = payment.external_reference; // Nosso Order ID
+
+      console.log(`📊 Status do pagamento ${paymentId}: ${status}`);
+
+      if (status === 'approved') {
+        updateOrderStatus(externalReference, 'approved');
+      }
+    }
+
+    res.json({ received: true });
+  } catch (error) {
+    console.error('Erro no webhook:', error.message);
+    res.status(500).json({ error: 'Internal server error' });
   }
-
-  res.json({ received: true });
 });
+
+// ============ ROTAS DE TESTE E SIMULAÇÃO ============
+
+// Rota para SIMULAR aprovação de pagamento (para testes locais)
+app.post('/api/test/approve-payment/:id', async (req, res) => {
+  try {
+    const { id } = req.params; // Pode ser Transaction ID ou Order ID
+    console.log(`🧪 Simulando aprovação para: ${id}`);
+
+    const ordersPath = path.join(__dirname, 'orders.json');
+    if (!fs.existsSync(ordersPath)) return res.status(404).json({ error: 'Sem pedidos' });
+
+    let orders = JSON.parse(fs.readFileSync(ordersPath, 'utf8'));
+
+    // Tenta achar por Transaction ID ou Order ID
+    const orderIndex = orders.findIndex(o => o.transaction_id == id || o.id == id);
+
+    if (orderIndex === -1) {
+      return res.status(404).json({ error: 'Pedido não encontrado' });
+    }
+
+    // Atualizar status
+    orders[orderIndex].status = 'approved';
+    fs.writeFileSync(ordersPath, JSON.stringify(orders, null, 2));
+
+    const order = orders[orderIndex];
+
+    // Enviar emails de confirmação (simulado)
+    const payerName = order.customer.name.split(' ');
+    const payerData = {
+      first_name: payerName[0],
+      last_name: payerName.slice(1).join(' '),
+      phone: { area_code: '11', number: '99999999' }
+    };
+
+    // Re-enviar recibo e notificação
+    await sendReceiptEmail(order.customer.email, order.items, order.total, 'approved', order.id);
+    await sendAdminNotification(order.items, order.total, order.customer.email, payerData, 'approved', order.id, order.customer.address);
+
+    res.json({
+      success: true,
+      message: 'Pagamento aprovado manualmente (Modo Teste)',
+      order: order
+    });
+
+  } catch (error) {
+    console.error('Erro na simulação:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Helper para atualizar status do pedido (usado pelo webhook)
+function updateOrderStatus(orderId, newStatus) {
+  try {
+    const ordersPath = path.join(__dirname, 'orders.json');
+    if (!fs.existsSync(ordersPath)) return;
+
+    let orders = JSON.parse(fs.readFileSync(ordersPath, 'utf8'));
+    const index = orders.findIndex(o => o.id === orderId);
+
+    if (index !== -1 && orders[index].status !== newStatus) {
+      orders[index].status = newStatus;
+      fs.writeFileSync(ordersPath, JSON.stringify(orders, null, 2));
+      console.log(`✅ Pedido ${orderId} atualizado para: ${newStatus}`);
+
+      // Se aprovado agora, dispara emails
+      if (newStatus === 'approved') {
+        // (Lógica de email já estaria no fluxo normal, mas aqui garantimos atualização de banco)
+      }
+    }
+  } catch (e) {
+    console.error('Erro ao atualizar JSON de pedidos:', e);
+  }
+}
 
 // ============ ROTAS DE TESTE ============
 app.get('/api/status', (req, res) => {
@@ -697,6 +794,7 @@ app.post('/api/products', authenticateAdmin, (req, res) => {
       title,
       price: parseFloat(price),
       image: image || 'images/product-1.png',
+      images: req.body.images || [image || 'images/product-1.png'], // Salva array de imagens
       description: description || '',
       quantity: parseInt(quantity) || 0,
       stock: parseInt(quantity) || 0

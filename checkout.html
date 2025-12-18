@@ -105,6 +105,10 @@
 
 						<div class="form-group row">
 							<div class="col-md-6">
+								<label for="c_city" class="text-black">Cidade <span class="text-danger">*</span></label>
+								<input type="text" class="form-control" id="c_city" name="c_city">
+							</div>
+							<div class="col-md-6">
 								<div class="form-group">
 									<label for="c_country" class="text-black">Estado <span
 											class="text-danger">*</span></label>
@@ -348,16 +352,7 @@
 	                  </div>
 	                </div> -->
 
-								<div class="border p-3 mb-3">
-									<h3 class="h6 mb-0"><a class="d-block" data-bs-toggle="collapse" href="#collapsepix"
-											role="button" aria-expanded="false" aria-controls="collapsepix">Pix</a></h3>
 
-									<div class="collapse" id="collapsepix">
-										<div class="py-2">
-											<p class="mb-0">Integração com Pix em breve...</p>
-										</div>
-									</div>
-								</div>
 
 
 								<div class="form-group">
@@ -468,23 +463,43 @@
 	<!-- Mercado Pago SDK v2 para Payment Brick -->
 	<script src="https://sdk.mercadopago.com/js/v2"></script>
 	<script>
-		// Configuração do Mercado Pago para Payment Brick
-		window.MP_PUBLIC_KEY = window.MP_PUBLIC_KEY || 'TEST-560926a5-34b7-41f0-974c-f2f4ce44814f';
-		window.MP_BRICK_ID = window.MP_BRICK_ID || 'brick_494653537_658683757195653';
+		// Buscar chaves do servidor
+		async function loadMercadoPagoConfig() {
+			try {
+				const response = await fetch('/api/config/mercadopago');
+				const config = await response.json();
+				window.MP_PUBLIC_KEY = config.publicKey;
+				window.MP_BRICK_ID = config.brickId;
+				console.log('🔑 Credenciais do Mercado Pago carregadas');
+
+				// Dispara evento avisando que configuração está pronta
+				window.dispatchEvent(new Event('mercadopago_config_ready'));
+			} catch (error) {
+				console.error('Erro ao carregar credenciais do MP:', error);
+				// Fallback apenas para teste se falhar
+				window.MP_PUBLIC_KEY = 'TEST-560926a5-34b7-41f0-974c-f2f4ce44814f';
+				window.MP_BRICK_ID = 'brick_494653537_658683757195653';
+				window.dispatchEvent(new Event('mercadopago_config_ready'));
+			}
+		}
+		loadMercadoPagoConfig();
 	</script>
 	<script src="js/custom.js"></script>
 	<script src="js/cart.js"></script>
-	<script src="js/payment-brick.js?v=5"></script>
+	<script src="js/payment-brick.js?v=6"></script>
 	<script>
 		// Renderizar itens do carrinho no checkout
 		function renderCheckoutItems() {
 			const cartItems = cart.getCart();
 			const container = document.getElementById('checkout-items');
+			// ... (rest of implementation same as before) ...
+			const subtotalEl = document.getElementById('checkout-subtotal');
+			const totalEl = document.getElementById('checkout-total');
 
 			if (cartItems.length === 0) {
 				container.innerHTML = '<tr><td colspan="2" class="text-center text-muted">Nenhum item no carrinho</td></tr>';
-				document.getElementById('checkout-subtotal').textContent = 'R$ 0,00';
-				document.getElementById('checkout-total').textContent = 'R$ 0,00';
+				if (subtotalEl) subtotalEl.textContent = 'R$ 0,00';
+				if (totalEl) totalEl.textContent = 'R$ 0,00';
 				return;
 			}
 
@@ -498,26 +513,52 @@
 			`;
 			}).join('');
 
-			const total = cart.getTotal();
-			document.getElementById('checkout-subtotal').textContent = `R$ ${total.toFixed(2).replace('.', ',')}`;
-			document.getElementById('checkout-total').textContent = `R$ ${total.toFixed(2).replace('.', ',')}`;
+			// Recalculate total correctly
+			const total = cartItems.reduce((acc, item) => {
+				return acc + (parseFloat(item.price.replace(/[^0-9.]/g, '')) * item.quantity);
+			}, 0);
+
+			if (subtotalEl) subtotalEl.textContent = `R$ ${total.toFixed(2).replace('.', ',')}`;
+			if (totalEl) totalEl.textContent = `R$ ${total.toFixed(2).replace('.', ',')}`;
 
 			// Atualizar amount no Payment Brick se já foi inicializado
-			if (window.paymentBrickManager) {
+			if (window.paymentBrickManager && typeof window.paymentBrickManager.updateAmount === 'function') {
 				window.paymentBrickManager.updateAmount(total);
 			}
 		}
 
-		// Renderizar ao carregar
-		document.addEventListener('DOMContentLoaded', () => {
+		// Função principal de inicialização
+		function initCheckout() {
 			renderCheckoutItems();
 
-			// Inicializar Payment Brick após renderizar valores
-			if (window.paymentBrickManager) {
+			// Instanciar o Payment Brick Manager MANUALMENTE agora que temos as chaves
+			if (window.PaymentBrickManager && window.MP_PUBLIC_KEY && window.MP_BRICK_ID) {
+				if (!window.paymentBrickManager) {
+					console.log('Inicializando Manager com chaves:', window.MP_PUBLIC_KEY);
+					window.paymentBrickManager = new window.PaymentBrickManager(window.MP_PUBLIC_KEY, window.MP_BRICK_ID);
+				}
+
 				console.log('Iniciando renderização do Payment Brick via checkout.html');
 				window.paymentBrickManager.renderBrick();
 			} else {
-				console.warn('PaymentBrickManager não encontrado. Verifique se payment-brick.js foi carregado.');
+				console.error('Falha ao inicializar PaymentBrick: Chaves ou Classe faltando.', {
+					Class: !!window.PaymentBrickManager,
+					Key: !!window.MP_PUBLIC_KEY,
+					BrickId: !!window.MP_BRICK_ID
+				});
+			}
+		}
+
+		// Renderizar ao carregar, MAS esperar config
+		document.addEventListener('DOMContentLoaded', () => {
+			// Se config já carregou (improvável ser mais rápido que DOMContentLoaded se for fetch de rede, mas possível em cache), verificamos a key
+			if (window.MP_PUBLIC_KEY) {
+				initCheckout();
+			} else {
+				// Se não, esperamos o evento
+				window.addEventListener('mercadopago_config_ready', () => {
+					initCheckout();
+				});
 			}
 		});
 
