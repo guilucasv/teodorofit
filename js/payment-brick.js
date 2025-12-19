@@ -140,15 +140,23 @@ class PaymentBrickManager {
         external_reference: `ORD-${Date.now()}`,
         notification_url: 'https://seusite.com/webhook/mercado-pago', // Replace with actual URL if available
         additional_info: {
-          items: cart.getCart().map(item => ({
-            id: item.id,
-            title: item.title,
-            description: item.title,
-            picture_url: item.image || '',
-            category_id: 'fashion',
-            quantity: item.quantity,
-            unit_price: parseFloat(item.price.replace(/[^0-9.]/g, ''))
-          })),
+          items: cart.getCart().map(item => {
+            let price = 0;
+            if (typeof item.price === 'number') {
+              price = item.price;
+            } else if (typeof item.price === 'string') {
+              price = parseFloat(item.price.replace(/[^0-9.]/g, '')) || 0;
+            }
+            return {
+              id: item.id,
+              title: item.title,
+              description: item.title,
+              picture_url: item.image || '',
+              category_id: 'fashion',
+              quantity: item.quantity,
+              unit_price: price
+            };
+          }),
           payer: {
             first_name: this.getCustomerName().split(' ')[0],
             last_name: this.getCustomerName().split(' ').slice(1).join(' '),

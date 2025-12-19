@@ -463,29 +463,20 @@
 	<!-- Mercado Pago SDK v2 para Payment Brick -->
 	<script src="https://sdk.mercadopago.com/js/v2"></script>
 	<script>
-		// Buscar chaves do servidor
-		async function loadMercadoPagoConfig() {
-			try {
-				const response = await fetch('/api/config/mercadopago');
-				const config = await response.json();
-				window.MP_PUBLIC_KEY = config.publicKey;
-				window.MP_BRICK_ID = config.brickId;
-				console.log('🔑 Credenciais do Mercado Pago carregadas');
+		// Configuração Manual do Mercado Pago (Ambiente de Teste)
+		// Evita chamadas de API que falham em ambiente estático e race conditions
+		function loadMercadoPagoConfig() {
+			console.log('🔧 Carregando configurações do MP (Modo Estático)...');
+			window.MP_PUBLIC_KEY = 'TEST-560926a5-34b7-41f0-974c-f2f4ce44814f';
+			window.MP_BRICK_ID = 'brick_494653537_658683757195653';
 
-				// Dispara evento avisando que configuração está pronta
-				window.dispatchEvent(new Event('mercadopago_config_ready'));
-			} catch (error) {
-				console.error('Erro ao carregar credenciais do MP:', error);
-				// Fallback apenas para teste se falhar
-				window.MP_PUBLIC_KEY = 'TEST-560926a5-34b7-41f0-974c-f2f4ce44814f';
-				window.MP_BRICK_ID = 'brick_494653537_658683757195653';
-				window.dispatchEvent(new Event('mercadopago_config_ready'));
-			}
+			// Dispara evento imediato
+			window.dispatchEvent(new Event('mercadopago_config_ready'));
 		}
 		loadMercadoPagoConfig();
 	</script>
 	<script src="js/custom.js"></script>
-	<script src="js/cart.js"></script>
+	<script src="js/cart.js?v=2"></script>
 	<script src="js/payment-brick.js?v=6"></script>
 	<script>
 		// Renderizar itens do carrinho no checkout
@@ -504,7 +495,14 @@
 			}
 
 			container.innerHTML = cartItems.map(item => {
-				const itemTotal = parseFloat(item.price.replace(/[^0-9.]/g, '')) * item.quantity;
+				let price = 0;
+				if (typeof item.price === 'number') {
+					price = item.price;
+				} else if (typeof item.price === 'string') {
+					price = parseFloat(item.price.replace(/[^0-9.]/g, '')) || 0;
+				}
+				const itemTotal = price * item.quantity;
+
 				return `
 			<tr>
 				<td>${item.title}<strong class="mx-2">x</strong> ${item.quantity}</td>
@@ -515,7 +513,13 @@
 
 			// Recalculate total correctly
 			const total = cartItems.reduce((acc, item) => {
-				return acc + (parseFloat(item.price.replace(/[^0-9.]/g, '')) * item.quantity);
+				let price = 0;
+				if (typeof item.price === 'number') {
+					price = item.price;
+				} else if (typeof item.price === 'string') {
+					price = parseFloat(item.price.replace(/[^0-9.]/g, '')) || 0;
+				}
+				return acc + (price * item.quantity);
 			}, 0);
 
 			if (subtotalEl) subtotalEl.textContent = `R$ ${total.toFixed(2).replace('.', ',')}`;

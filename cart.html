@@ -299,7 +299,7 @@
   <script src="js/bootstrap.bundle.min.js"></script>
   <script src="js/tiny-slider.js"></script>
   <script src="js/custom.js"></script>
-  <script src="js/cart.js"></script>
+  <script src="js/cart.js?v=2"></script>
   <script>
     // Renderizar carrinho ao carregar a página
     document.addEventListener('DOMContentLoaded', () => {
@@ -318,6 +318,23 @@
       const emptyMessage = document.getElementById('empty-cart-message');
 
       if (cartItems.length === 0) {
+        // DEBUG: Force check storage
+        const rawStore = localStorage.getItem('teodorofit_cart');
+        console.log('DEBUG: Raw Store', rawStore);
+        if (rawStore && rawStore !== '[]') {
+          // We have data but getCart returned empty?
+          // This implies JSON parse error or logic error
+          try {
+            const parsed = JSON.parse(rawStore);
+            alert(`DEBUG: Storage has ${parsed.length} items but Cart says 0. \nRaw: ${rawStore}`);
+          } catch (e) {
+            alert('DEBUG: JSON Parse Error on storage: ' + e.message);
+          }
+        } else {
+          // Real empty
+          // alert('DEBUG: Storage is truly empty or null');
+        }
+
         container.style.display = 'none';
         emptyMessage.style.display = 'block';
         updateCartSummary();
@@ -347,7 +364,7 @@
             </div>
           </div>
           <div style="text-align: right;">
-            <strong>R$ ${(parseFloat(item.price.replace(/[^0-9.]/g, '')) * item.quantity).toFixed(2)}</strong>
+            <strong>R$ ${((typeof item.price === 'number' ? item.price : parseFloat(item.price.replace(/[^0-9.]/g, '') || 0)) * item.quantity).toFixed(2)}</strong>
             <br>
             <button class="remove-btn" onclick="cart.removeProduct('${item.id}'); renderCart();">
               <i class="fa fa-trash"></i>

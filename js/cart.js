@@ -21,20 +21,36 @@ class ShoppingCart {
   addProduct(product) {
     // Verificar se produto já existe no carrinho
     const existingProduct = this.cart.find(item => item.id === product.id);
+    const maxStock = product.maxStock || 100; // Default fallback if undefined
 
     if (existingProduct) {
-      existingProduct.quantity += product.quantity || 1;
+      // Logic: Clamp to maxStock (Silent Limit)
+      const newTotal = existingProduct.quantity + (product.quantity || 1);
+      if (newTotal > maxStock) {
+        existingProduct.quantity = maxStock;
+      } else {
+        existingProduct.quantity = newTotal;
+      }
+      // Update maxStock in case it changed
+      existingProduct.maxStock = maxStock;
     } else {
+      // Logic: Clamp to maxStock (Silent Limit)
+      let quantityToAdd = product.quantity || 1;
+      if (quantityToAdd > maxStock) quantityToAdd = maxStock;
+
       this.cart.push({
         id: product.id,
         title: product.title,
         price: product.price,
         image: product.image,
-        quantity: product.quantity || 1
+        quantity: quantityToAdd,
+        maxStock: maxStock
       });
     }
 
     this.saveCart();
+    // Mostrar mensagem de sucesso (moved inside class or handled by caller, but logic was in addToCart global)
+    return true; // Indicate success
   }
 
   // Remover produto do carrinho
@@ -50,6 +66,12 @@ class ShoppingCart {
       if (quantity <= 0) {
         this.removeProduct(productId);
       } else {
+        // Validation (Silent Block)
+        const max = product.maxStock || 100;
+        if (quantity > max) {
+          // Do nothing, effectively "locking" the value at the current (allowed) level
+          return;
+        }
         product.quantity = quantity;
         this.saveCart();
       }
@@ -65,8 +87,13 @@ class ShoppingCart {
   // Obter total do carrinho
   getTotal() {
     return this.cart.reduce((total, item) => {
-      const itemPrice = parseFloat(item.price.replace(/[^0-9.]/g, ''));
-      return total + (itemPrice * item.quantity);
+      let price = 0;
+      if (typeof item.price === 'number') {
+        price = item.price;
+      } else if (typeof item.price === 'string') {
+        price = parseFloat(item.price.replace(/[^0-9.]/g, '')) || 0;
+      }
+      return total + (price * item.quantity);
     }, 0);
   }
 
@@ -167,19 +194,22 @@ document.addEventListener('DOMContentLoaded', () => {
 // ============ FUNÇÕES AUXILIARES ============
 
 // Adicionar produto ao carrinho (chamada do HTML)
-function addToCart(productId, title, price, image, quantity = 1) {
-  console.log(`🛒 Tentando adicionar: ${title} (${productId}) - Preço: ${price} - Qtd: ${quantity}`);
+function addToCart(productId, title, price, image, quantity = 1, maxStock = 100) {
+  console.log(`🛒 Tentando adicionar: ${title} (${productId}) - Preço: ${price} - Qtd: ${quantity} - Estoque: ${maxStock}`);
 
-  cart.addProduct({
+  const success = cart.addProduct({
     id: productId,
     title: title,
     price: price,
     image: image,
-    quantity: quantity
+    quantity: quantity,
+    maxStock: maxStock
   });
 
-  // Mostrar mensagem de sucesso
-  showCartNotification(`"${title}" adicionado ao carrinho!`);
+  if (success) {
+    // Mostrar mensagem de sucesso
+    showCartNotification(`"${title}" adicionado ao carrinho!`);
+  }
 }
 
 // Mostrar notificação

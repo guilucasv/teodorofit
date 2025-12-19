@@ -13,3 +13,18 @@ Testing Port 465 (Secure: true)...
 [2025-12-10T11:43:18.702Z]    Code: ETIMEDOUT
 [2025-12-10T11:43:18.703Z] 
 💥 DIAGNOSTIC RESULT: All attempts failed. Likely a firewall or network blocking issue.
+[2025-12-19T14:45:13.736Z] --- STARTING EMAIL DIAGNOSTIC ---
+[2025-12-19T14:45:13.745Z] User: noreplyteodorofitness@gmail.com
+[2025-12-19T14:45:13.745Z] Pass length: 19
+[2025-12-19T14:45:13.746Z] Checking DNS for smtp.gmail.com...
+[2025-12-19T14:45:13.815Z] ✅ DNS Lookup success: 172.217.192.109 (IPv4)
+[2025-12-19T14:45:13.816Z] 
+Testing Port 587 (Secure: false)...
+[2025-12-19T14:45:23.845Z] ❌ FAILED on Port 587: Connection timeout
+[2025-12-19T14:45:23.846Z]    Code: ETIMEDOUT
+[2025-12-19T14:45:23.846Z] 
+Testing Port 465 (Secure: true)...
+[2025-12-19T14:45:33.869Z] ❌ FAILED on Port 465: Connection timeout
+[2025-12-19T14:45:33.870Z]    Code: ETIMEDOUT
+[2025-12-19T14:45:33.871Z] 
+💥 DIAGNOSTIC RESULT: All attempts failed. Likely a firewall or network blocking issue.
