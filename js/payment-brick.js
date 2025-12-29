@@ -51,7 +51,7 @@ class PaymentBrickManager {
             creditCard: 'all',
             debitCard: 'all',
             ticket: 'all',
-            bankTransfer: 'all',
+            bankTransfer: ['pix'],
             atm: 'all',
             onboarding_credits: 'all',
             wallet_purchase: 'all',

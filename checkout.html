@@ -467,7 +467,8 @@
 		// Evita chamadas de API que falham em ambiente estático e race conditions
 		function loadMercadoPagoConfig() {
 			console.log('🔧 Carregando configurações do MP (Modo Estático)...');
-			window.MP_PUBLIC_KEY = 'TEST-560926a5-34b7-41f0-974c-f2f4ce44814f';
+			// CONFIGURAÇÃO DO MERCADO PAGO
+			window.MP_PUBLIC_KEY = 'APP_USR-821cf4a5-4869-48d5-9c82-7a403d2ef62c'; // Production Key
 			window.MP_BRICK_ID = 'brick_494653537_658683757195653';
 
 			// Dispara evento imediato

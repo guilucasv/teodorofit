@@ -414,7 +414,7 @@
 				<div class="col-12 col-md-4 col-lg-3 mb-5">
 					<div class="product-item" onclick="openQuickView(${index})" style="cursor: pointer;">
 						<div style="position:relative; overflow:hidden; border-radius:10px; margin-bottom:15px; height:250px; background:#f8f9fa;">
-							<img src="${p.image}" class="img-fluid" style="width:100%; height:100%; object-fit:contain;" alt="${p.title}">
+							<img src="${p.image}" onerror="this.onerror=null; this.src='images/product-1.png';" class="img-fluid" style="width:100%; height:100%; object-fit:contain;" alt="${p.title}">
 							${stockLabel ? `<div style="position:absolute; top:10px; left:10px;">${stockLabel}</div>` : ''}
 						</div>
 						<h3 class="product-title">${p.title}</h3>
@@ -475,6 +475,7 @@
 
 			// Set initial main image
 			mainImg.src = images[0];
+			mainImg.onerror = function () { this.src = 'images/product-1.png'; };
 
 			// Render Thumbnails (DOM approach for safety)
 			thumbsContainer.innerHTML = ''; // Clear previous
@@ -484,6 +485,7 @@
 				images.forEach((imgUrl, i) => {
 					const thumb = document.createElement('img');
 					thumb.src = imgUrl;
+					thumb.onerror = function () { this.src = 'images/product-1.png'; };
 					thumb.classList.add('thumb-img');
 					if (i === 0) thumb.classList.add('active');
 					thumb.alt = 'Thumb ' + (i + 1);
@@ -516,6 +518,7 @@
 			window.updateMainImage = function (el, src) {
 				const main = document.getElementById('main-modal-image');
 				main.src = src;
+				main.onerror = function () { this.src = 'images/product-1.png'; };
 				// Update active class
 				document.querySelectorAll('.thumb-img').forEach(t => t.classList.remove('active'));
 				el.classList.add('active');
@@ -580,7 +583,7 @@
 					<div class="col-6">
 						<div class="d-flex align-items-center bg-white p-2 border rounded related-item" 
 							 onclick="const idx = allProducts.findIndex(x => x.id === '${p.id}'); openQuickView(idx);">
-							<img src="${pImg}" style="width:50px; height:50px; object-fit:cover; border-radius:5px; margin-right:10px;">
+							<img src="${pImg}" onerror="this.onerror=null; this.src='images/bowl-2.png';" style="width:50px; height:50px; object-fit:cover; border-radius:5px; margin-right:10px;">
 							<div>
 								<div class="small fw-bold text-truncate" style="max-width:120px;">${p.title}</div>
 								<div class="small text-primary">R$ ${parseFloat(p.price).toFixed(2)}</div>
