@@ -84,8 +84,8 @@
         }
 
         .app-right {
-            flex-basis: 320px;
-            width: 320px;
+            flex-basis: 400px;
+            width: 400px;
             background-color: var(--app-bg-dark);
             height: 100%;
             padding: 64px 0 0 0;
@@ -120,6 +120,8 @@
             height: 100%;
             overflow-y: auto;
             overflow-x: hidden;
+            padding: 0 40px 40px 40px;
+            /* Added padding to center content */
         }
 
         .app-logo {
@@ -427,14 +429,20 @@
             width: 80px;
             height: 80px;
             overflow: hidden;
-            border-radius: 50%;
+            border-radius: 10px;
+            /* Was 50% */
             margin-bottom: 16px;
+            display: flex;
+            /* Centering */
+            align-items: center;
+            justify-content: center;
         }
 
         .profile-photo-wrapper img {
             width: 100%;
             height: 100%;
-            object-fit: cover;
+            object-fit: contain;
+            /* Was cover */
         }
 
         .profile-text,
@@ -447,6 +455,122 @@
 
         .profile-text {
             font-weight: 600;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            color: var(--main-color);
+        }
+
+        .section-header h2 {
+            font-size: 20px;
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .section-header svg {
+            color: var(--secondary-color);
+            cursor: pointer;
+        }
+
+        /* Message Style (Vendas Recentes) */
+        .message-box-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 24px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .message-box-item:hover {
+            transform: translateX(5px);
+        }
+
+        .message-box-item img {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-right: 16px;
+        }
+
+        .message-content h3 {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--main-color);
+            margin: 0 0 4px 0;
+        }
+
+        .message-content p {
+            font-size: 12px;
+            color: var(--secondary-color);
+            margin: 0;
+            display: -webkit-box;
+            -webkit-line-clamp: 1;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        /* Activity Style (Novos Produtos) */
+        .activity-box-item {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 24px;
+        }
+
+        .activity-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 16px;
+            flex-shrink: 0;
+        }
+
+        .activity-icon.pink {
+            background-color: var(--warning-bg);
+            color: var(--warning-icon);
+        }
+
+        .activity-icon.green {
+            background-color: var(--applicant-bg);
+            color: var(--applicant-icon);
+        }
+
+        .activity-icon.yellow {
+            background-color: var(--close-bg);
+            color: var(--close-icon);
+        }
+
+        .activity-icon.blue {
+            background-color: #e3ebff;
+            color: #3d7eff;
+        }
+
+        .activity-content h3 {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--main-color);
+            margin: 0 0 4px 0;
+            line-height: 1.4;
+        }
+
+        .activity-content p {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--main-color);
+            margin: 0 0 4px 0;
+        }
+
+        .activity-content .time {
+            font-size: 12px;
+            color: var(--secondary-color);
+            font-weight: 400;
         }
 
         .menu-button,
@@ -806,19 +930,18 @@
                 </svg></button>
             <div class="profile-box">
                 <div class="profile-photo-wrapper">
-                    <!-- Placeholder or User Image -->
-                    <div
-                        style="width:100%; height:100%; background:#333; display:flex; align-items:center; justify-content:center; color:#555;">
-                        IMG</div>
+                    <img src="images/admin-profile-logo.png" alt="Admin Profile">
                 </div>
                 <p class="profile-text">Teodoro Store</p>
-                <p class="profile-subtext">Gerente</p>
+                <p class="profile-subtext">Administrador</p>
             </div>
 
             <div class="app-right-content">
-                <div class="app-right-section">
+
+                <!-- Status Section (Low Stock) -->
+                <div class="app-right-section" style="margin-bottom: 30px;">
                     <div class="app-right-section-header">
-                        <h2>Status</h2>
+                        <h2>Status do Sistema</h2>
                         <span class="notification-active"></span>
                     </div>
                     <div class="activity-line">
@@ -836,6 +959,32 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- Vendas Recentes (Style: Messages) -->
+                <div style="margin-top: 40px; margin-bottom: 30px;">
+                    <div class="section-header">
+                        <h2>Vendas Recentes</h2>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                        </svg>
+                    </div>
+                    <div id="right-sales-list"></div>
+                </div>
+
+                <!-- Novos Produtos (Style: Activity) -->
+                <div>
+                    <div class="section-header">
+                        <h2>Atividade Recente</h2>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                            <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                        </svg>
+                    </div>
+                    <div id="right-products-list"></div>
+                </div>
+
             </div>
         </div>
 
@@ -1083,8 +1232,31 @@
             });
 
             chartInstance.data.labels = Object.keys(days);
+            chartInstance.data.labels = Object.keys(days);
             chartInstance.data.datasets[0].data = Object.values(days);
             chartInstance.update();
+
+            renderRecentSalesSidebar(filtered);
+        }
+
+        function renderRecentSalesSidebar(orders) {
+            const recent = orders.slice(0, 5);
+            const container = document.getElementById('right-sales-list');
+
+            if (recent.length === 0) {
+                container.innerHTML = '<p style="color:var(--secondary-color); font-size:12px;">Nenhuma venda recente.</p>';
+                return;
+            }
+
+            container.innerHTML = recent.map(o => `
+                 <div class="message-box-item">
+                    <img src="images/user.svg" style="background:#fff; padding:2px;">
+                    <div class="message-content">
+                        <h3>${o.customer.name}</h3>
+                        <p>Pedido de <strong>R$ ${parseFloat(o.total).toFixed(2)}</strong> realizado.</p>
+                    </div>
+                </div>
+            `).join('');
         }
 
         // --- PRODUCTS LOGIC ---
@@ -1095,7 +1267,35 @@
                 document.getElementById('low-stock').innerText = allProducts.filter(p => p.quantity < 5).length;
                 populateCategoryFilter(allProducts);
                 renderProducts(allProducts);
+                renderRecentProductsSidebar(allProducts); // Update Sidebar
             } catch (e) { console.error(e); }
+        }
+
+        function renderRecentProductsSidebar(products) {
+            const sorted = [...products].sort((a, b) => b.id - a.id).slice(0, 5);
+            const container = document.getElementById('right-products-list');
+
+            if (sorted.length === 0) {
+                container.innerHTML = '<p style="color:var(--secondary-color); font-size:12px;">Nenhum produto registro.</p>';
+                return;
+            }
+
+            const styles = ['pink', 'green', 'yellow', 'blue'];
+
+            container.innerHTML = sorted.map((p, index) => {
+                const style = styles[index % styles.length];
+                return `
+                <div class="activity-box-item">
+                    <div class="activity-icon ${style}">
+                        <img src="${p.image}" style="width:24px; height:24px; object-fit:cover; border-radius:4px;">
+                    </div>
+                    <div class="activity-content">
+                        <h3>Novo produto adicionado</h3>
+                        <p>${p.title}</p>
+                        <div class="time">Estoque: <strong>${p.quantity}</strong> un.</div>
+                    </div>
+                </div>
+            `}).join('');
         }
 
         function populateCategoryFilter(products) {
