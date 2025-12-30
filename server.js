@@ -796,6 +796,7 @@ app.post('/api/products', authenticateAdmin, (req, res) => {
       image: image || 'images/product-1.png',
       images: req.body.images || [image || 'images/product-1.png'], // Salva array de imagens
       description: description || '',
+      category: req.body.category || 'Geral',
       quantity: parseInt(quantity) || 0,
       stock: parseInt(quantity) || 0
     };
@@ -883,6 +884,45 @@ app.post('/api/admin/stock', authenticateAdmin, (req, res) => {
   } catch (error) {
     console.error('Erro ao atualizar estoque:', error);
     res.status(500).json({ error: 'Erro interno' });
+  }
+});
+
+// Editar Produto Completo (Admin)
+app.put('/api/products/:id', authenticateAdmin, (req, res) => {
+  try {
+    const { id } = req.params;
+    const { title, price, image, description, quantity, category } = req.body;
+    const productsPath = path.join(__dirname, 'products.json');
+
+    if (!fs.existsSync(productsPath)) return res.status(404).json({ error: 'Banco de dados não encontrado' });
+
+    let products = JSON.parse(fs.readFileSync(productsPath, 'utf8'));
+    const index = products.findIndex(p => p.id == id); // Loose equality checks for String/Number mismatch
+
+    if (index === -1) return res.status(404).json({ error: 'Produto não encontrado' });
+
+    // Atualiza apenas os campos enviados (merge)
+    products[index] = {
+      ...products[index],
+      title: title || products[index].title,
+      price: price ? parseFloat(price) : products[index].price,
+      image: image || products[index].image,
+      images: req.body.images || products[index].images || [image || products[index].image], // Atualiza array de imagens
+      description: description || products[index].description,
+      category: category || products[index].category || 'Geral',
+      quantity: quantity !== undefined ? parseInt(quantity) : products[index].quantity,
+      // Se atualizar quantity, atualiza stock legado também
+      stock: quantity !== undefined ? parseInt(quantity) : (products[index].stock || 0)
+    };
+
+    fs.writeFileSync(productsPath, JSON.stringify(products, null, 2));
+    console.log(`✏️ Produto editado: ${products[index].title}`);
+
+    res.json({ success: true, product: products[index] });
+
+  } catch (error) {
+    console.error('Erro ao editar produto:', error);
+    res.status(500).json({ error: 'Erro ao editar produto' });
   }
 });
 
