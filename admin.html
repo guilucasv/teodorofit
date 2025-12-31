@@ -22,11 +22,11 @@
             --app-bg-before-2: linear-gradient(0deg, rgba(1, 8, 31, 0) 0%, rgba(1, 8, 31, 1) 100%);
             --app-bg-light: #151c32;
             --app-logo: #3d7eff;
-            --nav-link: #5e6a81;
+            --nav-link: #fff;
             --nav-link-active: #fff;
             --list-item-hover: #0c1635;
             --main-color: #fff;
-            --secondary-color: #5e6a81;
+            --secondary-color: #fff;
             --color-light: rgba(52, 129, 210, .2);
             --warning-bg: #ffe5e5;
             --warning-icon: #ff8181;
@@ -54,7 +54,7 @@
             height: 100%;
             display: flex;
             position: relative;
-            max-width: 1680px;
+            /* max-width removed for full width */
         }
 
         .app-left {
@@ -180,14 +180,19 @@
         }
 
         .nav-list-link {
-            font-weight: 300;
+            font-weight: 400;
+            /* Increased from 300 */
             font-size: 14px;
             line-height: 24px;
             padding: 8px 24px;
-            color: var(--nav-link);
+            color: #ffffff !important;
+            /* Force white */
             display: flex;
             align-items: center;
             position: relative;
+            opacity: 1;
+            /* Force opacity */
+            transition: 0.2s;
         }
 
         .nav-list-link svg {
@@ -510,6 +515,7 @@
             margin: 0;
             display: -webkit-box;
             -webkit-line-clamp: 1;
+            line-clamp: 1;
             -webkit-box-orient: vertical;
             overflow: hidden;
         }
@@ -597,6 +603,15 @@
                 display: flex;
                 color: var(--main-color);
             }
+        }
+
+        /* Dashboard Container Wrapper */
+        .dashboard-content-wrapper {
+            background-color: var(--app-bg-dark);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
+            margin-top: 10px;
         }
 
         @media screen and (max-width: 920px) {
@@ -809,95 +824,123 @@
 
             <!-- VIEW: REVENUE (DASHBOARD) -->
             <div id="view-revenue">
-                <!-- Top 3 Circular Charts -->
-                <div class="chart-row three">
-                    <div class="chart-container-wrapper">
-                        <div class="chart-container">
-                            <div class="chart-info-wrapper">
-                                <h2>Faturamento</h2>
-                                <span id="rev-total">R$ 0,00</span>
+                <div class="dashboard-content-wrapper">
+                    <!-- Top 3 Circular Charts -->
+                    <div class="chart-row three">
+                        <div class="chart-container-wrapper">
+                            <div class="chart-container">
+                                <div class="chart-info-wrapper">
+                                    <h2>Faturamento</h2>
+                                    <span id="rev-total">R$ 0,00</span>
+                                </div>
+                                <div class="chart-svg">
+                                    <svg viewBox="0 0 36 36" class="circular-chart pink">
+                                        <path class="circle-bg"
+                                            d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831">
+                                        </path>
+                                        <path class="circle" stroke-dasharray="100, 100"
+                                            d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831">
+                                        </path>
+                                        <text x="18" y="20.35" class="percentage">$</text>
+                                    </svg>
+                                </div>
                             </div>
-                            <div class="chart-svg">
-                                <svg viewBox="0 0 36 36" class="circular-chart pink">
-                                    <path class="circle-bg"
-                                        d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831">
-                                    </path>
-                                    <path class="circle" stroke-dasharray="100, 100"
-                                        d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831">
-                                    </path>
-                                    <text x="18" y="20.35" class="percentage">$</text>
-                                </svg>
+                        </div>
+                        <div class="chart-container-wrapper">
+                            <div class="chart-container">
+                                <div class="chart-info-wrapper">
+                                    <h2>Pedidos</h2>
+                                    <span id="rev-count">0</span>
+                                </div>
+                                <div class="chart-svg">
+                                    <svg viewBox="0 0 36 36" class="circular-chart blue">
+                                        <path class="circle-bg"
+                                            d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831">
+                                        </path>
+                                        <path class="circle" stroke-dasharray="80, 100"
+                                            d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831">
+                                        </path>
+                                        <text x="18" y="20.35" class="percentage">#</text>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="chart-container-wrapper">
+                            <div class="chart-container">
+                                <div class="chart-info-wrapper">
+                                    <h2>Ticket Médio</h2>
+                                    <span id="rev-ticket">R$ 0,00</span>
+                                </div>
+                                <div class="chart-svg">
+                                    <svg viewBox="0 0 36 36" class="circular-chart orange">
+                                        <path class="circle-bg"
+                                            d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831">
+                                        </path>
+                                        <path class="circle" stroke-dasharray="50, 100"
+                                            d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831">
+                                        </path>
+                                        <text x="18" y="20.35" class="percentage">%</text>
+                                    </svg>
+                                </div>
                             </div>
                         </div>
                     </div>
-                    <div class="chart-container-wrapper">
-                        <div class="chart-container">
-                            <div class="chart-info-wrapper">
-                                <h2>Pedidos</h2>
-                                <span id="rev-count">0</span>
-                            </div>
-                            <div class="chart-svg">
-                                <svg viewBox="0 0 36 36" class="circular-chart blue">
-                                    <path class="circle-bg"
-                                        d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831">
-                                    </path>
-                                    <path class="circle" stroke-dasharray="80, 100"
-                                        d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831">
-                                    </path>
-                                    <text x="18" y="20.35" class="percentage">#</text>
-                                </svg>
+
+                    <!-- Main Chart Row -->
+                    <div class="chart-row two">
+                        <!-- Graph -->
+                        <div class="chart-container-wrapper big">
+                            <div class="chart-container">
+                                <div class="chart-container-header">
+                                    <h2>Desempenho de Vendas</h2>
+                                    <span>Últimos 30 dias</span>
+                                </div>
+                                <div class="line-chart">
+                                    <canvas id="chart"></canvas>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                    <div class="chart-container-wrapper">
-                        <div class="chart-container">
-                            <div class="chart-info-wrapper">
-                                <h2>Ticket Médio</h2>
-                                <span id="rev-ticket">R$ 0,00</span>
-                            </div>
-                            <div class="chart-svg">
-                                <svg viewBox="0 0 36 36" class="circular-chart orange">
-                                    <path class="circle-bg"
-                                        d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831">
-                                    </path>
-                                    <path class="circle" stroke-dasharray="50, 100"
-                                        d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831">
-                                    </path>
-                                    <text x="18" y="20.35" class="percentage">%</text>
-                                </svg>
+                        <!-- Transaction List -->
+                        <div class="chart-container-wrapper small">
+                            <div class="chart-container applicants">
+                                <div class="chart-container-header">
+                                    <h2>Transações Recentes</h2>
+                                    <span>Hoje</span>
+                                </div>
+                                <div id="revenue-list" style="width: 100%;">
+                                    <!-- Populated by JS -->
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Main Chart Row -->
-                <div class="chart-row two">
-                    <!-- Graph -->
-                    <div class="chart-container-wrapper big">
-                        <div class="chart-container">
-                            <div class="chart-container-header">
-                                <h2>Desempenho de Vendas</h2>
-                                <span>Últimos 30 dias</span>
-                            </div>
-                            <div class="line-chart">
-                                <canvas id="chart"></canvas>
-                            </div>
+                <!-- NEW SECTION: Bottom Extended Stats -->
+                <div style="display: flex; margin-top: 24px; gap: 24px;">
+                    <!-- Top Products Box -->
+                    <div class="dashboard-content-wrapper" style="flex: 1; margin-top: 0;">
+                        <div class="chart-container-header" style="margin-bottom: 20px;">
+                            <h2>Produtos Mais Vendidos</h2>
+                            <span>Top 5</span>
+                        </div>
+                        <div id="top-products-list">
+                            <!-- Populated by JS -->
                         </div>
                     </div>
-                    <!-- Transaction List -->
-                    <div class="chart-container-wrapper small">
-                        <div class="chart-container applicants">
-                            <div class="chart-container-header">
-                                <h2>Transações Recentes</h2>
-                                <span>Hoje</span>
-                            </div>
-                            <div id="revenue-list" style="width: 100%;">
-                                <!-- Populated by JS -->
-                            </div>
+
+                    <!-- Category Chart Box -->
+                    <div class="dashboard-content-wrapper" style="flex: 1; margin-top: 0;">
+                        <div class="chart-container-header" style="margin-bottom: 20px;">
+                            <h2>Vendas por Categoria</h2>
+                        </div>
+                        <div style="height: 250px; position: relative;">
+                            <canvas id="categoryChart"></canvas>
                         </div>
                     </div>
                 </div>
             </div>
+
+
 
             <!-- VIEW: PRODUCTS (STOCK) -->
             <div id="view-products" style="display: none;">
@@ -1237,6 +1280,92 @@
             chartInstance.update();
 
             renderRecentSalesSidebar(filtered);
+            renderExtendedStats(filtered, allProducts);
+        }
+
+        let categoryChartInstance = null;
+
+        function renderExtendedStats(orders, products) {
+            // 1. Top Products
+            const productSales = {};
+            orders.forEach(o => {
+                o.items.forEach(item => {
+                    const safeId = String(item.product_id);
+                    if (!productSales[safeId]) productSales[safeId] = { qty: 0, revenue: 0 };
+                    productSales[safeId].qty += item.quantity;
+                    productSales[safeId].revenue += (item.price * item.quantity);
+                });
+            });
+
+            const topProductIds = Object.keys(productSales).sort((a, b) => productSales[b].qty - productSales[a].qty).slice(0, 5);
+
+            const topListContainer = document.getElementById('top-products-list');
+            if (topProductIds.length === 0) {
+                topListContainer.innerHTML = '<p class="activity-text" style="opacity:0.6;">Sem dados de vendas.</p>';
+            } else {
+                topListContainer.innerHTML = topProductIds.map(id => {
+                    const product = products.find(p => String(p.id) === id);
+                    if (!product) return '';
+                    const stats = productSales[id];
+                    return `
+                    <div class="message-box-item" style="cursor:default; margin-bottom:15px;">
+                        <img src="${product.image}" style="border-radius:8px; width:44px; height:44px; object-fit:cover; margin-right:16px;">
+                        <div class="message-content" style="flex:1;">
+                            <div style="display:flex; justify-content:space-between;">
+                                <h3 style="color:#fff;">${product.title}</h3>
+                                <span style="font-size:12px; color:var(--main-color); font-weight:600;">${stats.qty} vendidos</span>
+                            </div>
+                            <p style="margin-top:2px; color:#fff;">Total: R$ ${stats.revenue.toFixed(2)}</p>
+                        </div>
+                    </div>`;
+                }).join('');
+            }
+
+            // 2. Category Chart
+            const categoryStats = {};
+            orders.forEach(o => {
+                o.items.forEach(item => {
+                    const product = products.find(p => String(p.id) === String(item.product_id));
+                    const cat = product ? (product.category || 'Outros') : 'Desconhecido';
+
+                    if (!categoryStats[cat]) categoryStats[cat] = 0;
+                    categoryStats[cat] += (item.price * item.quantity);
+                });
+            });
+
+            if (categoryChartInstance) {
+                categoryChartInstance.destroy();
+            }
+
+            const ctxCat = document.getElementById('categoryChart');
+            if (!ctxCat) return;
+
+            // If no data
+            if (Object.keys(categoryStats).length === 0) {
+                return;
+            }
+
+            categoryChartInstance = new Chart(ctxCat.getContext('2d'), {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(categoryStats),
+                    datasets: [{
+                        data: Object.values(categoryStats),
+                        backgroundColor: ['#3d7eff', '#ff8181', '#61e1a1', '#fdbc64', '#e9780e'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                            labels: { color: '#fff' }
+                        }
+                    }
+                }
+            });
         }
 
         function renderRecentSalesSidebar(orders) {
