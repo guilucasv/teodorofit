@@ -17,17 +17,18 @@
         }
 
         :root {
-            --app-bg-dark: #01081f;
-            --app-bg-before: linear-gradient(180deg, rgba(1, 8, 31, 0) 0%, rgba(1, 8, 31, 1) 100%);
-            --app-bg-before-2: linear-gradient(0deg, rgba(1, 8, 31, 0) 0%, rgba(1, 8, 31, 1) 100%);
-            --app-bg-light: #151c32;
-            --app-logo: #3d7eff;
-            --nav-link: #fff;
-            --nav-link-active: #fff;
-            --list-item-hover: #0c1635;
+            --app-bg-dark: #000000;
+            /* Pure Black */
+            --app-bg-before: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 1) 100%);
+            --app-bg-before-2: linear-gradient(0deg, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 1) 100%);
+            --app-bg-light: #111111;
+            --app-logo: #ffffff;
+            --nav-link: #ffffff;
+            --nav-link-active: #ffffff;
+            --list-item-hover: #1a1a1a;
             --main-color: #fff;
-            --secondary-color: #fff;
-            --color-light: rgba(52, 129, 210, .2);
+            --secondary-color: #d1d5db;
+            --color-light: rgba(255, 255, 255, .1);
             --warning-bg: #ffe5e5;
             --warning-icon: #ff8181;
             --applicant-bg: #e3fff1;
@@ -38,6 +39,8 @@
             --draft-icon: #e9780e;
         }
 
+
+
         body {
             height: 100vh;
             width: 100%;
@@ -45,7 +48,7 @@
             display: flex;
             justify-content: center;
             font-family: 'Poppins', sans-serif;
-            background-color: #050e2d;
+            background-color: #000000;
             margin: 0;
         }
 
@@ -80,7 +83,7 @@
             overflow-x: hidden;
             background-color: var(--app-bg-light);
             padding: 24px;
-            background: radial-gradient(circle, rgba(5, 19, 64, 1) 1%, rgba(4, 15, 50, 1) 100%);
+            background: radial-gradient(circle, #000000, #000000 100%);
         }
 
         .app-right {
@@ -107,7 +110,7 @@
         }
 
         .activity-text {
-            color: var(--secondary-color);
+            color: #fff !important;
             line-height: 1.4;
             font-size: 14px;
         }
@@ -343,31 +346,31 @@
         }
 
         .circular-chart.orange .circle {
-            stroke: #ff9f00;
+            stroke: #e2e8f0;
         }
 
         .circular-chart.orange .circle-bg {
-            stroke: #776547;
+            stroke: #4a5568;
         }
 
         .circular-chart.blue .circle {
-            stroke: #00cfde;
+            stroke: #cbd5e0;
         }
 
         .circular-chart.blue .circle-bg {
-            stroke: #557b88;
+            stroke: #4a5568;
         }
 
         .circular-chart.pink .circle {
-            stroke: #ff7dcb;
+            stroke: #a0aec0;
         }
 
         .circular-chart.pink .circle-bg {
-            stroke: #6f5684;
+            stroke: #4a5568;
         }
 
         .percentage {
-            fill: #fff;
+            fill: var(--main-color);
             font-size: 0.5em;
             text-anchor: middle;
             font-weight: 400;
@@ -497,14 +500,14 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 24px;
-            color: var(--main-color);
+            color: #fff !important;
         }
 
         .app-right-section-header h2 {
             font-size: 20px;
             font-weight: 600;
             margin: 0;
-            color: var(--main-color);
+            color: #fff !important;
         }
 
         /* Message Style (Vendas Recentes) */
@@ -564,24 +567,13 @@
             flex-shrink: 0;
         }
 
-        .activity-icon.pink {
-            background-color: var(--warning-bg);
-            color: var(--warning-icon);
-        }
-
-        .activity-icon.green {
-            background-color: var(--applicant-bg);
-            color: var(--applicant-icon);
-        }
-
-        .activity-icon.yellow {
-            background-color: var(--close-bg);
-            color: var(--close-icon);
-        }
-
+        .activity-icon.pink,
+        .activity-icon.green,
+        .activity-icon.yellow,
         .activity-icon.blue {
-            background-color: #e3ebff;
-            color: #3d7eff;
+            background-color: var(--app-bg-light);
+            color: var(--main-color);
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         .activity-content h3 {
@@ -716,7 +708,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: #01081f;
+            background: #000000;
             z-index: 9999;
             display: flex;
             justify-content: center;
@@ -732,19 +724,13 @@
         <div
             style="background: var(--app-bg-light); padding: 40px; border-radius: 10px; width: 350px; text-align: center; border: 1px solid rgba(255,255,255,0.05);">
             <div style="margin-bottom: 20px; color: var(--app-logo);">
-                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none"
-                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                    class="feather feather-bar-chart-2">
-                    <line x1="18" y1="20" x2="18" y2="10" />
-                    <line x1="12" y1="20" x2="12" y2="4" />
-                    <line x1="6" y1="20" x2="6" y2="14" />
-                </svg>
+                <img src="images/logonobg.png" alt="Teodoro Admin" style="width: 100px; height: auto;">
             </div>
             <h3 style="color: #fff; margin-bottom: 20px;">Admin Teodoro</h3>
             <input type="text" id="logname" class="form-style" placeholder="Login" style="margin-bottom: 10px;">
             <input type="password" id="logpass" class="form-style" placeholder="Senha" style="margin-bottom: 20px;">
             <button onclick="login()"
-                style="width: 100%; padding: 12px; background: var(--app-logo); border: none; color: #fff; border-radius: 4px; font-weight: 500;">ENTRAR</button>
+                style="width: 100%; padding: 12px; background: var(--app-logo); border: none; color: #000; border-radius: 4px; font-weight: 500;">ENTRAR</button>
             <p id="login-error" style="color: #ff5c5c; margin-top: 10px; display: none;">Credenciais Inválidas</p>
         </div>
     </div>
@@ -836,6 +822,7 @@
             <div class="main-header-line">
                 <h1 id="page-header-title">Dashboard de Monitoramento</h1>
                 <div class="action-buttons">
+
                     <button class="menu-button">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
                             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
@@ -1072,9 +1059,18 @@
             </select>
             <input type="number" id="new-price" class="form-style mb-2" placeholder="Preço (R$)">
             <input type="number" id="new-qty" class="form-style mb-2" placeholder="Quantidade">
-            <input type="text" id="new-image" class="form-style mb-2" placeholder="URL Imagem">
-            <textarea id="new-images-extra" class="form-style mb-2" style="height:60px"
-                placeholder="Extras..."></textarea>
+            <div style="display:flex; gap:5px; margin-bottom:8px;">
+                <input type="text" id="new-image" class="form-style" placeholder="URL Imagem" style="flex:1;">
+                <button onclick="triggerUpload('new-image')"
+                    style="background:#fff; color:#000; border:none; padding:0 15px; border-radius:4px; font-size:12px; cursor:pointer; font-weight:600;">Upload</button>
+            </div>
+            <div style="display:flex; gap:5px; margin-bottom:8px;">
+                <textarea id="new-images-extra" class="form-style" style="height:60px; flex:1;"
+                    placeholder="Extras (uma por linha ou separado por vírgula)"></textarea>
+                <button onclick="triggerUpload('new-images-extra')"
+                    style="background:#fff; color:#000; border:none; padding:0 15px; border-radius:4px; font-size:12px; cursor:pointer; font-weight:600;">+
+                    Foto</button>
+            </div>
             <input type="text" id="new-desc" class="form-style mb-2" placeholder="Descrição">
             <div style="display:flex; gap:10px; margin-top:20px;">
                 <button onclick="createProduct()"
@@ -1095,8 +1091,18 @@
             <input type="text" id="edit-title" class="form-style mb-2" placeholder="Nome">
             <select id="edit-category" class="form-style mb-2"></select>
             <input type="number" id="edit-price" class="form-style mb-2" placeholder="Preço">
-            <input type="text" id="edit-image" class="form-style mb-2" placeholder="Imagem">
-            <textarea id="edit-images-extra" class="form-style mb-2" style="height:60px"></textarea>
+            <div style="display:flex; gap:5px; margin-bottom:8px;">
+                <input type="text" id="edit-image" class="form-style" placeholder="URL Imagem" style="flex:1;">
+                <button onclick="triggerUpload('edit-image')"
+                    style="background:#fff; color:#000; border:none; padding:0 15px; border-radius:4px; font-size:12px; cursor:pointer; font-weight:600;">Upload</button>
+            </div>
+            <div style="display:flex; gap:5px; margin-bottom:8px;">
+                <textarea id="edit-images-extra" class="form-style" style="height:60px; flex:1;"
+                    placeholder="Extras..."></textarea>
+                <button onclick="triggerUpload('edit-images-extra')"
+                    style="background:#fff; color:#000; border:none; padding:0 15px; border-radius:4px; font-size:12px; cursor:pointer; font-weight:600;">+
+                    Foto</button>
+            </div>
             <input type="text" id="edit-desc" class="form-style mb-2" placeholder="Descrição">
             <div style="display:flex; gap:10px; margin-top:20px;">
                 <button onclick="saveEditProduct()"
@@ -1643,7 +1649,23 @@
             toggleEditModal(true);
         }
 
-        function toggleModal(show) { document.getElementById('add-product-modal').style.display = show ? 'flex' : 'none'; }
+        function toggleModal(show) {
+            const modal = document.getElementById('add-product-modal');
+            modal.style.display = show ? 'flex' : 'none';
+
+            if (show) {
+                // Clear fields
+                document.getElementById('new-title').value = '';
+                document.getElementById('new-price').value = '';
+                document.getElementById('new-qty').value = '';
+                document.getElementById('new-image').value = '';
+                document.getElementById('new-images-extra').value = '';
+                document.getElementById('new-desc').value = '';
+                // Reset category to first option
+                const cat = document.getElementById('new-category');
+                if (cat && cat.options.length > 0) cat.selectedIndex = 0;
+            }
+        }
         function toggleEditModal(show) { document.getElementById('edit-product-modal').style.display = show ? 'flex' : 'none'; }
 
         async function saveEditProduct() {
@@ -1713,6 +1735,65 @@
             }, 500);
         }
 
+
+
+    </script>
+
+    <!-- HIDDEN CLOUDINARY INPUT -->
+    <input type="file" id="cloudinary-input" style="display:none;" accept="image/*" onchange="performUpload()">
+
+    <script>
+        // --- CLOUDINARY CONFIG ---
+        const CLOUD_NAME = 'dzf8dvqpr';
+        const UPLOAD_PRESET = 'teodorofitness';
+        let uploadTargetId = null; // 'new-image', 'edit-image', etc.
+
+        function triggerUpload(targetId) {
+            uploadTargetId = targetId;
+            document.getElementById('cloudinary-input').click();
+        }
+
+        async function performUpload() {
+            const input = document.getElementById('cloudinary-input');
+            const file = input.files[0];
+            if (!file) return;
+
+            // Feedback
+            const btn = document.querySelector(`button[onclick="triggerUpload('${uploadTargetId}')"]`);
+            const originalText = btn ? btn.innerText : 'Upload';
+            if (btn) btn.innerText = 'Enviando...';
+
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('upload_preset', UPLOAD_PRESET);
+
+            try {
+                const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await res.json();
+
+                if (data.secure_url) {
+                    const targetInput = document.getElementById(uploadTargetId);
+                    // If target is "extra images", append it. Otherwise replace.
+                    if (uploadTargetId.includes('extra')) {
+                        const current = targetInput.value;
+                        targetInput.value = current ? current + ',\n' + data.secure_url : data.secure_url;
+                    } else {
+                        targetInput.value = data.secure_url;
+                    }
+                } else {
+                    alert('Erro no upload: ' + (data.error ? data.error.message : 'Desconhecido'));
+                }
+            } catch (e) {
+                console.error(e);
+                alert('Erro de conexão com Cloudinary');
+            } finally {
+                if (btn) btn.innerText = originalText;
+                input.value = ''; // Reset
+            }
+        }
     </script>
 </body>
 
