@@ -1,0 +1,62 @@
+[
+  {
+    "id": "1",
+    "title": "Conjunto 1",
+    "price": 149.90,
+    "image": "images/conjunto1.PNG",
+    "images": ["images/conjunto1.PNG", "images/conjunto1.1.PNG"],
+    "description": "Conjunto fitness confortável.",
+    "category": "Conjuntos",
+    "quantity": 10
+  },
+  {
+    "id": "2",
+    "title": "Conjunto 2",
+    "price": 159.90,
+    "image": "images/conjunto2.PNG",
+    "images": ["images/conjunto2.PNG", "images/conjunto2.2.PNG"],
+    "description": "Conjunto fitness moderno e estiloso.",
+    "category": "Conjuntos",
+    "quantity": 10
+  },
+  {
+    "id": "3",
+    "title": "Blusão Capp",
+    "price": 99.90,
+    "image": "images/blusaocapp1.PNG",
+    "images": ["images/blusaocapp1.PNG", "images/blusaocapp2.PNG"],
+    "description": "Blusão confortável para treinos em dias frios.",
+    "category": "Blusões",
+    "quantity": 5
+  },
+  {
+    "id": "4",
+    "title": "Conjunto Cherry",
+    "price": 169.90,
+    "image": "images/conjuntocherry.PNG",
+    "images": ["images/conjuntocherry.PNG"],
+    "description": "Conjunto na cor cherry, perfeito para treinar com estilo.",
+    "category": "Conjuntos",
+    "quantity": 8
+  },
+  {
+    "id": "5",
+    "title": "Blusão Off White",
+    "price": 119.90,
+    "image": "images/blusaooffwhite.PNG",
+    "images": ["images/blusaooffwhite.PNG"],
+    "description": "Blusão Off White elegante e versátil.",
+    "category": "Blusões",
+    "quantity": 12
+  },
+  {
+    "id": "6",
+    "title": "Conjunto 8",
+    "price": 179.90,
+    "image": "images/conjunto8.PNG",
+    "images": ["images/conjunto8.PNG", "images/conjunto8.8.PNG"],
+    "description": "Conjunto fitness premium.",
+    "category": "Conjuntos",
+    "quantity": 7
+  }
+]

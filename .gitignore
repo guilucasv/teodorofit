@@ -45,7 +45,6 @@ desktop.ini
 
 ## Local Data & Debug
 local_emails/
-products.json
 debug_email.js
 diagnose_email.js
 check_payment.js
