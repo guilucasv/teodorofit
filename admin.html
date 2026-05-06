@@ -641,14 +641,16 @@
             }
 
             .app-left {
-                position: absolute;
-                opacity: 0;
+                position: fixed;
+                opacity: 1;
                 top: 0;
-                z-index: 20;
+                z-index: 99999;
                 height: 100%;
-                width: 320px;
-                right: -100%;
+                width: 280px;
+                left: -300px;
+                right: auto;
                 box-shadow: 0 0 10px 5px rgba(1, 8, 31, .4);
+                transition: left 0.3s ease;
             }
 
             .close-menu {
@@ -661,8 +663,6 @@
 
             .app-left.show {
                 left: 0;
-                right: auto;
-                width: 240px;
             }
         }
 
@@ -713,6 +713,50 @@
             display: flex;
             justify-content: center;
             align-items: center;
+        @media screen and (max-width: 768px) {
+            .chart-row {
+                flex-direction: column !important;
+                margin: 0 !important;
+            }
+            .chart-row.three .chart-container-wrapper,
+            .chart-row.two .big,
+            .chart-row.two .small {
+                width: 100% !important;
+                max-width: 100% !important;
+                margin-bottom: 16px !important;
+            }
+            #view-revenue > div:last-child {
+                flex-direction: column !important;
+                gap: 16px !important;
+            }
+            .app-main {
+                padding: 16px !important;
+            }
+            .dashboard-content-wrapper {
+                padding: 16px !important;
+            }
+            .custom-table-row {
+                flex-direction: column !important;
+                align-items: flex-start !important;
+            }
+            .custom-table-row > div:last-child {
+                margin-top: 10px !important;
+                width: 100% !important;
+                display: flex !important;
+                justify-content: flex-end !important;
+            }
+            #product-search, #category-filter {
+                width: 100% !important;
+            }
+            /* Stack search and filter */
+            #view-products .d-flex.justify-content-between.mb-3 {
+                flex-direction: column !important;
+                gap: 10px !important;
+            }
+            .modal-content-wrapper {
+                width: 90% !important;
+                padding: 20px !important;
+            }
         }
     </style>
 </head>
@@ -1050,7 +1094,7 @@
     <!-- ADD PRODUCT MODAL -->
     <div id="add-product-modal"
         style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:10000; align-items:center; justify-content:center;">
-        <div
+        <div class="modal-content-wrapper"
             style="background:var(--app-bg-dark); padding:30px; border-radius:10px; width:400px; border:1px solid rgba(255,255,255,0.1); position: relative;">
             <h4 style="color:#fff; margin-bottom:20px;">Adicionar Novo Produto</h4>
             <input type="text" id="new-title" class="form-style mb-2" placeholder="Nome do Produto">
@@ -1084,7 +1128,7 @@
     <!-- EDIT PRODUCT MODAL -->
     <div id="edit-product-modal"
         style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:10000; align-items:center; justify-content:center;">
-        <div
+        <div class="modal-content-wrapper"
             style="background:var(--app-bg-dark); padding:30px; border-radius:10px; width:400px; border:1px solid rgba(255,255,255,0.1); position: relative;">
             <h4 style="color:#fff; margin-bottom:20px;">Editar Produto</h4>
             <input type="hidden" id="edit-id">
