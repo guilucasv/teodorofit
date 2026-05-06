@@ -140,6 +140,11 @@ app.post('/api/pagamento-mercado-pago', async (req, res) => {
       street_number: fullAddress.street_number // Add if available later
     };
 
+    const isTestMode = process.env.MERCADO_PAGO_TOKEN.startsWith('TEST-');
+    if (isTestMode) {
+      paymentData.payer.email = `test_user_${Math.floor(Math.random() * 100000)}@testuser.com`;
+    }
+
     const payload = {
       token: paymentData.token,
       issuer_id: paymentData.issuer_id,
